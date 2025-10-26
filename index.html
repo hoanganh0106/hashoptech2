@@ -191,16 +191,8 @@
                         <label>Số điện thoại *</label>
                         <input type="tel" class="form-input" id="customerPhone" required>
                     </div>
-                    <div class="form-group">
-                        <label>Phương thức thanh toán *</label>
-                        <select class="form-input" id="paymentMethod" required>
-                            <option value="">Chọn phương thức</option>
-                            <option value="bank">Chuyển khoản ngân hàng</option>
-                            <option value="momo">Ví MoMo</option>
-                            <option value="zalopay">ZaloPay</option>
-                            <option value="card">Thẻ tín dụng</option>
-                        </select>
-                    </div>
+                    <!-- Payment method hidden - always use Sepay -->
+                    <input type="hidden" id="paymentMethod" value="bank">
                     <div class="form-group">
                         <label>Ghi chú</label>
                         <textarea class="form-textarea" id="orderNote" rows="3"></textarea>

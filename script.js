@@ -402,9 +402,16 @@ function setupEventListeners() {
         const paymentMethod = document.getElementById('paymentMethod').value;
         const orderNote = document.getElementById('orderNote').value;
 
+        console.log('📋 Form data:', { customerName, customerEmail, customerPhone, paymentMethod });
+
         // Validate
         if (cart.length === 0) {
             showNotification('Giỏ hàng trống!', 'warning');
+            return;
+        }
+
+        if (!customerName || !customerEmail || !customerPhone) {
+            showNotification('Vui lòng điền đầy đủ thông tin!', 'warning');
             return;
         }
 
