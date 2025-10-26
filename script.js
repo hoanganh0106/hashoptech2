@@ -33,13 +33,24 @@ async function loadProducts() {
 // Render Products với variants
 function renderProducts() {
     const productsGrid = document.getElementById('productsGrid');
-    if (!productsGrid) return;
+    if (!productsGrid) {
+        console.warn('⚠️ productsGrid element not found');
+        return;
+    }
+    
+    if (!products || products.length === 0) {
+        console.warn('⚠️ No products to render');
+        productsGrid.innerHTML = '<div style="text-align:center; padding:3rem; color:#999;">Chưa có sản phẩm nào</div>';
+        return;
+    }
+    
+    console.log('✅ Rendering', products.length, 'products');
     
     productsGrid.innerHTML = products.map(product => {
         // Lấy giá thấp nhất từ variants
         const minPrice = product.variants && product.variants.length > 0
-            ? Math.min(...product.variants.map(v => v.price))
-            : product.price;
+            ? Math.min(...product.variants.map(v => v.price || 0))
+            : (product.price || 0);
 
         const priceDisplay = product.variants && product.variants.length > 1
             ? `Từ ${formatPrice(minPrice)}`
