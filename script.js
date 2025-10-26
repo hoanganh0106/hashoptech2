@@ -46,7 +46,7 @@ function renderProducts() {
             : formatPrice(minPrice);
 
         return `
-            <div class="product-card" onclick="showProductDetails(${product.id})">
+            <div class="product-card" onclick="showProductDetails('${product.id}')">
                 ${product.image_url ? `
                     <img src="${product.image_url}" alt="${product.name}" style="width:100%; height:200px; object-fit:cover;">
                 ` : `
