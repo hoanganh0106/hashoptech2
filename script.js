@@ -347,37 +347,41 @@ function closeCheckoutModal() {
 function showPaymentInfo(order, payment) {
     const modalBody = document.getElementById('modalBody');
     
+    console.log('💳 Payment info:', payment);
+    
     modalBody.innerHTML = `
         <div style="text-align: center;">
-            <div style="font-size: 4rem; color: var(--success-color); margin-bottom: 1rem;">
+            <div style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">
                 ✅
             </div>
-            <h2 style="color: var(--dark-color); margin-bottom: 1rem;">Đặt hàng thành công!</h2>
-            <p style="color: var(--text-color); margin-bottom: 2rem;">
-                Mã đơn hàng của bạn: <strong>${order.order_code}</strong>
+            <h2 style="margin-bottom: 1rem;">Đặt hàng thành công!</h2>
+            <p style="margin-bottom: 2rem;">
+                Mã đơn hàng: <strong>${order.order_code}</strong>
             </p>
         </div>
 
-        <div style="background: var(--light-color); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-            <h3 style="margin-bottom: 1rem; color: var(--dark-color);">💳 Thông tin thanh toán</h3>
+        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem;">💳 Quét mã QR để thanh toán</h3>
             
-            ${payment.qrUrl ? `
-                <div style="text-align: center; margin-bottom: 1rem;">
-                    <img src="${payment.qrUrl}" alt="QR Code" style="max-width: 300px; border-radius: 8px;">
+            ${payment.qrCodeUrl ? `
+                <div style="text-align: center; margin: 1.5rem 0;">
+                    <img src="${payment.qrCodeUrl}" alt="QR Code Thanh toán" style="max-width: 300px; width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 </div>
             ` : ''}
             
-            <div style="background: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <p><strong>🏦 Ngân hàng:</strong> ${payment.bankName}</p>
-                <p><strong>📊 Số tài khoản:</strong> <code style="background: var(--light-color); padding: 0.25rem 0.5rem; border-radius: 4px;">${payment.accountNumber}</code></p>
-                <p><strong>💰 Số tiền:</strong> <strong style="color: var(--accent-color);">${formatPrice(order.total_amount)}</strong></p>
-                <p><strong>✍️ Nội dung:</strong> <code style="background: var(--light-color); padding: 0.25rem 0.5rem; border-radius: 4px;">${payment.content}</code></p>
+            <div style="background: white; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <p style="margin: 0.5rem 0;"><strong>🏦 Ngân hàng:</strong> ${payment.bankCode || 'VPBank'}</p>
+                <p style="margin: 0.5rem 0;"><strong>📊 Số tài khoản:</strong> <code style="background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px;">${payment.accountNumber}</code></p>
+                <p style="margin: 0.5rem 0;"><strong>💰 Số tiền:</strong> <strong style="color: #ef4444;">${formatPrice(payment.amount)}</strong></p>
+                <p style="margin: 0.5rem 0;"><strong>✍️ Nội dung:</strong> <code style="background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px;">${payment.content}</code></p>
             </div>
 
             <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
                 <h4 style="color: #92400e; margin-bottom: 0.5rem;">⚠️ Lưu ý quan trọng:</h4>
-                <ul style="color: #92400e; margin-left: 1.5rem;">
-                    ${payment.instructions.map(inst => `<li style="margin-bottom: 0.25rem;">${inst}</li>`).join('')}
+                <ul style="color: #92400e; margin-left: 1.5rem; font-size: 0.9rem;">
+                    <li style="margin-bottom: 0.25rem;">Chuyển khoản ĐÚNG số tiền và nội dung</li>
+                    <li style="margin-bottom: 0.25rem;">Đơn hàng tự động xử lý sau khi thanh toán</li>
+                    <li style="margin-bottom: 0.25rem;">Liên hệ hỗ trợ nếu có vấn đề</li>
                 </ul>
             </div>
         </div>
