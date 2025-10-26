@@ -130,17 +130,17 @@ function getProductFormHTML(product = null) {
         <form id="productForm" onsubmit="saveProduct(event)">
             <div class="form-group">
                 <label>Tên sản phẩm *</label>
-                <input type="text" id="productName" class="form-input" value="${product?.name || ''}" required>
+                <input type="text" id="productName" class="form-input" value="${product?.name || ''}" autocomplete="off" spellcheck="false" required>
             </div>
 
             <div class="form-group">
                 <label>Danh mục *</label>
-                <input type="text" id="productCategory" class="form-input" value="${product?.category || ''}" placeholder="VD: Streaming, Music, Design..." required>
+                <input type="text" id="productCategory" class="form-input" value="${product?.category || ''}" placeholder="VD: Streaming, Music, Design..." autocomplete="off" spellcheck="false" required>
             </div>
 
             <div class="form-group">
                 <label>Mô tả</label>
-                <textarea id="productDescription" class="form-textarea" rows="3">${product?.description || ''}</textarea>
+                <textarea id="productDescription" class="form-textarea" rows="3" autocomplete="off" spellcheck="false">${product?.description || ''}</textarea>
             </div>
 
             <div class="form-group">
@@ -263,22 +263,22 @@ function renderVariants() {
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
                 <div>
                     <label style="font-size:0.875rem; font-weight:600;">Tên gói *</label>
-                    <input type="text" class="form-input" value="${v.name}" onchange="updateVariant(${index}, 'name', this.value)" placeholder="VD: Gói 1 tháng" required>
+                    <input type="text" class="form-input variant-name" data-index="${index}" value="${v.name}" placeholder="VD: Gói 1 tháng" autocomplete="off" spellcheck="false" required>
                 </div>
                 
                 <div>
-                    <label style="font-size:0.875rem; font-weight:600;">Giá *</label>
-                    <input type="number" class="form-input" value="${v.price}" onchange="updateVariant(${index}, 'price', parseInt(this.value))" placeholder="50000" required>
+                    <label style="font-size:0.875rem; font-weight:600;">Giá (VNĐ) *</label>
+                    <input type="number" class="form-input variant-price" data-index="${index}" value="${v.price}" placeholder="50000" required>
                 </div>
 
                 <div>
                     <label style="font-size:0.875rem; font-weight:600;">Thời gian *</label>
-                    <input type="number" class="form-input" value="${v.duration_value}" onchange="updateVariant(${index}, 'duration_value', parseInt(this.value))" min="1" required>
+                    <input type="number" class="form-input variant-duration" data-index="${index}" value="${v.duration_value}" min="1" required>
                 </div>
 
                 <div>
                     <label style="font-size:0.875rem; font-weight:600;">Đơn vị *</label>
-                    <select class="form-input" onchange="updateVariant(${index}, 'duration_unit', this.value)">
+                    <select class="form-input variant-unit" data-index="${index}">
                         <option value="day" ${v.duration_unit === 'day' ? 'selected' : ''}>Ngày</option>
                         <option value="month" ${v.duration_unit === 'month' ? 'selected' : ''}>Tháng</option>
                         <option value="year" ${v.duration_unit === 'year' ? 'selected' : ''}>Năm</option>
@@ -287,18 +287,32 @@ function renderVariants() {
             </div>
 
             <div style="margin-top:1rem;">
-                <label style="font-size:0.875rem; font-weight:600;">Mô tả</label>
-                <input type="text" class="form-input" value="${v.description || ''}" onchange="updateVariant(${index}, 'description', this.value)" placeholder="VD: Tài khoản Premium 1 tháng">
+                <label style="font-size:0.875rem; font-weight:600;">Mô tả gói</label>
+                <input type="text" class="form-input variant-desc" data-index="${index}" value="${v.description || ''}" placeholder="VD: Tài khoản Premium 1 tháng" autocomplete="off" spellcheck="false">
             </div>
         </div>
     `).join('');
 }
 
 /**
- * Update variant
+ * Update variant - Lấy giá trị từ các input khi submit
  */
-function updateVariant(index, field, value) {
-    productVariants[index][field] = value;
+function updateVariantsFromForm() {
+    const variantNames = document.querySelectorAll('.variant-name');
+    const variantPrices = document.querySelectorAll('.variant-price');
+    const variantDurations = document.querySelectorAll('.variant-duration');
+    const variantUnits = document.querySelectorAll('.variant-unit');
+    const variantDescs = document.querySelectorAll('.variant-desc');
+
+    variantNames.forEach((input, idx) => {
+        if (productVariants[idx]) {
+            productVariants[idx].name = input.value;
+            productVariants[idx].price = parseInt(variantPrices[idx].value) || 0;
+            productVariants[idx].duration_value = parseInt(variantDurations[idx].value) || 1;
+            productVariants[idx].duration_unit = variantUnits[idx].value;
+            productVariants[idx].description = variantDescs[idx].value;
+        }
+    });
 }
 
 /**
@@ -317,18 +331,27 @@ function removeVariant(index) {
 async function saveProduct(e) {
     e.preventDefault();
 
-    const name = document.getElementById('productName').value;
-    const category = document.getElementById('productCategory').value;
-    const description = document.getElementById('productDescription').value;
-    const icon = document.getElementById('productIcon').value;
-    const image_url = document.getElementById('productImageUrl').value;
+    const name = document.getElementById('productName').value.trim();
+    const category = document.getElementById('productCategory').value.trim();
+    const description = document.getElementById('productDescription').value.trim();
+    const icon = document.getElementById('productIcon').value.trim();
+    const image_url = document.getElementById('productImageUrl').value.trim();
     const featuresText = document.getElementById('productFeatures').value;
     const features = featuresText.split('\n').filter(f => f.trim());
+
+    // Validation
+    if (!name || !category) {
+        showNotification('Vui lòng điền tên và danh mục sản phẩm', 'error');
+        return;
+    }
 
     if (productVariants.length === 0) {
         showNotification('Vui lòng thêm ít nhất 1 gói/option', 'error');
         return;
     }
+
+    // Cập nhật variants từ form
+    updateVariantsFromForm();
 
     // Validate variants
     for (let v of productVariants) {
