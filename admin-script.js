@@ -38,8 +38,7 @@ function setupEventListeners() {
     // Order status filter
     document.getElementById('orderStatusFilter')?.addEventListener('change', loadOrders);
 
-    // Account product filter
-    document.getElementById('accountProductFilter')?.addEventListener('change', loadAccountStock);
+    // Account filters are handled inline with onchange in HTML
 }
 
 // Setup Product Button với event listener
