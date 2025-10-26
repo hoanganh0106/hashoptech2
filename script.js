@@ -55,15 +55,17 @@ function renderProducts() {
                     </div>
                 `}
                 <div class="product-info">
-                    <div class="product-category">${product.category}</div>
+                    <div class="product-category">${product.category || 'Sản phẩm'}</div>
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${product.description}</p>
-                    <ul class="product-features">
-                        ${product.features.slice(0, 2).map(feature => `<li>${feature}</li>`).join('')}
-                    </ul>
+                    <p class="product-description">${product.description || ''}</p>
+                    ${product.features && product.features.length > 0 ? `
+                        <ul class="product-features">
+                            ${product.features.slice(0, 2).map(feature => `<li>${feature}</li>`).join('')}
+                        </ul>
+                    ` : ''}
                     <div class="product-footer">
                         <div class="product-price">${priceDisplay}</div>
-                        <button class="btn-add-cart" onclick="addToCart(${product.id}, null, event)">
+                        <button class="btn-add-cart" onclick="addToCart('${product.id}', null, event)">
                             <i class="fas fa-cart-plus"></i> Thêm
                         </button>
                     </div>
