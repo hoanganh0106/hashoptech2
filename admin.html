@@ -402,11 +402,12 @@
         const modal = document.getElementById('addAccountModal');
         modal.style.display = 'flex';
         
-        // Load products
+        // Load products with variants
         fetch('/api/products')
             .then(r => r.json())
             .then(data => {
                 if (data.success && data.products) {
+                    allProducts = data.products; // Lưu lại để lấy variant
                     const select = document.getElementById('addAccountProduct');
                     select.innerHTML = '<option value="">Chọn sản phẩm</option>' +
                         data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
@@ -433,6 +434,20 @@
             return;
         }
 
+        // Tìm product và lấy variant đầu tiên
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+            alert('Không tìm thấy sản phẩm!');
+            return;
+        }
+
+        if (!product.variants || product.variants.length === 0) {
+            alert('Sản phẩm này chưa có gói/variant nào!');
+            return;
+        }
+
+        const variantName = product.variants[0].name; // Lấy variant đầu tiên
+
         fetch(`/api/products/${productId}/stock`, {
             method: 'POST',
             headers: {
@@ -440,6 +455,7 @@
                 'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
             },
             body: JSON.stringify({
+                variantName: variantName, // GỬI VARIANT NAME
                 accounts: [{
                     username: username,
                     password: password
@@ -453,12 +469,12 @@
                 closeAddAccountModal();
                 loadAllAccounts(); // Reload all
             } else {
-                alert('Lỗi: ' + (data.message || 'Không thể thêm tài khoản'));
+                alert('Lỗi: ' + (data.error || data.message || 'Không thể thêm tài khoản'));
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Có lỗi xảy ra!');
+            alert('Có lỗi xảy ra: ' + err.message);
         });
     }
 
