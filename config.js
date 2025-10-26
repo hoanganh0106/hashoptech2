@@ -35,7 +35,14 @@ module.exports = {
   mongodb: {
     uri: process.env.MONGODB_URI,
     dbName: process.env.MONGODB_DB_NAME,
-    options: {}
+    options: {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      retryWrites: true,
+      retryReads: true
+    }
   },
 
   // Frontend URL (để CORS)

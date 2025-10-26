@@ -23,6 +23,12 @@ mongoose.connection.on('error', (err) => {
 
 mongoose.connection.on('disconnected', () => {
   console.log('⚠️ MongoDB disconnected');
+  console.log('🔄 Đang thử kết nối lại sau 5 giây...');
+  setTimeout(connectDB, 5000);
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('✅ MongoDB reconnected!');
 });
 
 // Đóng kết nối khi app tắt
