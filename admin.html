@@ -194,13 +194,13 @@
                 <div style="background: white; padding: 2rem; border-radius: 8px; margin-bottom: 1rem;">
                     <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-box"></i> Quản Lý Kho Tài Khoản</h2>
                     
-                    <!-- Filters -->
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                        <select id="accountProductFilter" style="padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; min-width: 200px;">
-                            <option value="">Chọn sản phẩm</option>
-                        </select>
+                    <!-- Actions -->
+                    <div style="margin-bottom: 1.5rem;">
                         <button class="btn btn-primary" onclick="openAddAccountModal()" type="button">
                             <i class="fas fa-plus"></i> Thêm tài khoản
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadAllAccounts()" type="button" style="margin-left: 0.5rem;">
+                            <i class="fas fa-sync"></i> Làm mới
                         </button>
                     </div>
 
@@ -218,7 +218,7 @@
                             </thead>
                             <tbody id="accountsTableBody">
                                 <tr>
-                                    <td colspan="5" style="padding: 2rem; text-align: center; color: #999;">Chọn sản phẩm để xem tài khoản</td>
+                                    <td colspan="5" style="padding: 2rem; text-align: center; color: #999;">Đang tải...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -324,43 +324,47 @@
     <script src="admin-script.js"></script>
     <script src="admin-products.js"></script>
     <script>
-    // QUẢN LÝ KHO TÀI KHOẢN - MỚI HOÀN TOÀN
+    // QUẢN LÝ KHO TÀI KHOẢN - SIÊU ĐƠN GIẢN
     let currentAccounts = [];
+    let allProducts = [];
 
-    // Load products for filter
-    function loadAccountProducts() {
+    // Load all accounts from all products
+    function loadAllAccounts() {
         fetch('/api/products')
             .then(r => r.json())
             .then(data => {
                 if (data.success && data.products) {
-                    const select = document.getElementById('accountProductFilter');
-                    select.innerHTML = '<option value="">Chọn sản phẩm</option>' +
-                        data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                    allProducts = data.products;
+                    // Load accounts for each product
+                    const promises = data.products.map(product => 
+                        fetch(`/api/products/${product.id}/accounts`, {
+                            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
+                        }).then(r => r.json())
+                    );
                     
-                    select.onchange = function() {
-                        if (this.value) {
-                            loadAccountsByProduct(this.value);
-                        } else {
-                            document.getElementById('accountsTableBody').innerHTML = 
-                                '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #999;">Chọn sản phẩm để xem tài khoản</td></tr>';
-                        }
-                    };
+                    return Promise.all(promises);
                 }
-            });
-    }
-
-    // Load accounts by product
-    function loadAccountsByProduct(productId) {
-        fetch(`/api/products/${productId}/accounts`, {
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                currentAccounts = data.accounts || [];
+            })
+            .then(results => {
+                currentAccounts = [];
+                results.forEach((result, index) => {
+                    if (result.success && result.accounts) {
+                        result.accounts.forEach(acc => {
+                            currentAccounts.push({
+                                ...acc,
+                                productName: allProducts[index].name,
+                                productId: allProducts[index].id
+                            });
+                        });
+                    }
+                });
                 renderAccounts();
-            }
-        });
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('accountsTableBody').innerHTML = 
+                    '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #ef4444;">Lỗi tải dữ liệu</td></tr>';
+            });
     }
 
     // Render accounts table
@@ -374,7 +378,10 @@
         tbody.innerHTML = currentAccounts.map((acc, index) => `
             <tr style="border-bottom: 1px solid #e2e8f0;">
                 <td style="padding: 1rem;">${index + 1}</td>
-                <td style="padding: 1rem;">${acc.username || 'N/A'}</td>
+                <td style="padding: 1rem;">
+                    <div><strong>${acc.username || 'N/A'}</strong></div>
+                    <div style="font-size: 0.875rem; color: #666;">${acc.productName || 'N/A'}</div>
+                </td>
                 <td style="padding: 1rem;">${acc.password || 'N/A'}</td>
                 <td style="padding: 1rem;">
                     <span style="padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; background: ${acc.status === 'available' ? '#d1fae5' : '#e5e7eb'}; color: ${acc.status === 'available' ? '#10b981' : '#6b7280'};">
@@ -382,7 +389,7 @@
                     </span>
                 </td>
                 <td style="padding: 1rem;">
-                    <button onclick="deleteAccount('${acc._id}')" style="background: #fee2e2; color: #ef4444; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
+                    <button onclick="deleteAccount('${acc.productId}', '${acc._id}')" style="background: #fee2e2; color: #ef4444; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
                         <i class="fas fa-trash"></i> Xóa
                     </button>
                 </td>
@@ -444,11 +451,7 @@
             if (data.success) {
                 alert('Thêm tài khoản thành công!');
                 closeAddAccountModal();
-                // Reload if product is selected
-                const selectedProduct = document.getElementById('accountProductFilter').value;
-                if (selectedProduct) {
-                    loadAccountsByProduct(selectedProduct);
-                }
+                loadAllAccounts(); // Reload all
             } else {
                 alert('Lỗi: ' + (data.message || 'Không thể thêm tài khoản'));
             }
@@ -460,11 +463,8 @@
     }
 
     // Delete account
-    function deleteAccount(accountId) {
+    function deleteAccount(productId, accountId) {
         if (!confirm('Bạn có chắc muốn xóa tài khoản này?')) return;
-
-        const productId = document.getElementById('accountProductFilter').value;
-        if (!productId) return;
 
         fetch(`/api/products/${productId}/accounts/${accountId}`, {
             method: 'DELETE',
@@ -474,7 +474,7 @@
         .then(data => {
             if (data.success) {
                 alert('Đã xóa tài khoản!');
-                loadAccountsByProduct(productId);
+                loadAllAccounts(); // Reload all
             } else {
                 alert('Lỗi: ' + data.message);
             }
@@ -486,7 +486,7 @@
     window.navigateToPage = function(page) {
         if (originalNavigate) originalNavigate(page);
         if (page === 'accounts') {
-            loadAccountProducts();
+            loadAllAccounts(); // Load all accounts immediately
         }
     };
     </script>
