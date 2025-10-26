@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Tài Khoản - Mua Bán Tài Khoản Uy Tín</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav">
+                <div class="logo">
+                    <i class="fas fa-user-shield"></i>
+                    <span>HaShopTech</span>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#home" class="nav-link active">Trang chủ</a>
+                    <a href="#products" class="nav-link">Sản phẩm</a>
+                    <a href="#about" class="nav-link">Giới thiệu</a>
+                    <a href="#contact" class="nav-link">Liên hệ</a>
+                </nav>
+                <div class="cart-icon" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Mua Bán Tài Khoản Uy Tín</h1>
+                <p class="hero-subtitle">Cung cấp các loại tài khoản chất lượng cao với giá tốt nhất</p>
+                <a href="#products" class="btn btn-primary">Xem sản phẩm</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
+        <div class="container">
+            <h2 class="section-title">Sản Phẩm Nổi Bật</h2>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be dynamically inserted here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <h2 class="section-title">Tại Sao Chọn Chúng Tôi?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Bảo Mật Cao</h3>
+                    <p>Tất cả tài khoản đều được kiểm tra và bảo đảm an toàn</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3>Bảo Hành Uy Tín</h3>
+                    <p>Cam kết bảo hành, đổi trả nếu có vấn đề xảy ra</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h3>Giá Cả Hợp Lý</h3>
+                    <p>Cam kết giá tốt, nhiều ưu đãi</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2 class="section-title">Liên Hệ</h2>
+            <div class="contact-grid">
+                <div class="contact-info" style="max-width: 600px; margin: 0 auto;">
+                    <div class="contact-item" style="cursor: pointer; transition: all 0.3s; padding: 2rem; border-radius: 12px;" 
+                         onclick="window.open('https://t.me/hoanganh1162', '_blank')"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,136,204,0.3)';"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';">
+                        <i class="fab fa-telegram" style="font-size: 2.5rem; color: #0088cc;"></i>
+                        <div>
+                            <h4>Telegram</h4>
+                            <p style="color: #0088cc; font-weight: 500;">@hoanganh1162</p>
+                        </div>
+                    </div>
+                    <div class="contact-item" style="cursor: pointer; transition: all 0.3s; padding: 2rem; border-radius: 12px;" 
+                         onclick="window.open('https://facebook.com/HoangAnh.Sw', '_blank')"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(24,119,242,0.3)';"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';">
+                        <i class="fab fa-facebook" style="font-size: 2.5rem; color: #1877f2;"></i>
+                        <div>
+                            <h4>Facebook</h4>
+                            <p style="color: #1877f2; font-weight: 500;">facebook.com/HoangAnh.Sw</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 HaShopTech. Tất cả quyền được bảo lưu.</p>
+            <div class="social-links">
+                <a href="https://facebook.com/HoangAnh.Sw" target="_blank" title="Facebook"><i class="fab fa-facebook"></i></a>
+                <a href="https://t.me/hoanganh1162" target="_blank" title="Telegram"><i class="fab fa-telegram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Contact Bubble -->
+    <div class="floating-contact">
+        <div class="contact-buttons" id="contactButtons">
+            <a href="https://t.me/hoanganh1162" target="_blank" class="contact-btn telegram-btn" title="Telegram">
+                <i class="fab fa-telegram"></i>
+                <span>Telegram</span>
+            </a>
+            <a href="https://facebook.com/HoangAnh.Sw" target="_blank" class="contact-btn facebook-btn" title="Facebook">
+                <i class="fab fa-facebook"></i>
+                <span>Facebook</span>
+            </a>
+        </div>
+        <button class="contact-toggle" onclick="toggleContact()" title="Liên hệ">
+            <i class="fas fa-comments"></i>
+        </button>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Giỏ Hàng</h3>
+            <button class="close-cart" onclick="toggleCart()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be inserted here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Tổng cộng:</span>
+                <span class="total-amount" id="totalAmount">0đ</span>
+            </div>
+            <button class="btn btn-primary btn-checkout" onclick="checkout()">
+                Thanh toán
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for Product Details -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div id="modalBody">
+                <!-- Product details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCheckoutModal()">&times;</span>
+            <div class="checkout-form">
+                <h2>Thông Tin Đặt Hàng</h2>
+                <form id="orderForm">
+                    <div class="form-group">
+                        <label>Họ và tên *</label>
+                        <input type="text" class="form-input" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" class="form-input" id="customerEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại *</label>
+                        <input type="tel" class="form-input" id="customerPhone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phương thức thanh toán *</label>
+                        <select class="form-input" id="paymentMethod" required>
+                            <option value="">Chọn phương thức</option>
+                            <option value="bank">Chuyển khoản ngân hàng</option>
+                            <option value="momo">Ví MoMo</option>
+                            <option value="zalopay">ZaloPay</option>
+                            <option value="card">Thẻ tín dụng</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú</label>
+                        <textarea class="form-textarea" id="orderNote" rows="3"></textarea>
+                    </div>
+                    <div class="order-summary">
+                        <h3>Đơn hàng của bạn</h3>
+                        <div id="orderSummary"></div>
+                        <div class="order-total">
+                            <strong>Tổng cộng:</strong>
+                            <strong id="orderTotal">0đ</strong>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Xác nhận đặt hàng</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - HaShopTech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin-style.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-page">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-shield-alt"></i>
+                <h1>Admin Panel</h1>
+                <p>Đăng nhập để quản lý hệ thống</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Tên đăng nhập</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Mật khẩu</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+            </form>
+            <div id="loginError" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div id="dashboardPage" class="dashboard-page" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Panel</span>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-page="dashboard">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="menu-item" data-page="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Đơn hàng</span>
+                </a>
+                <a href="#" class="menu-item" data-page="products">
+                    <i class="fas fa-box"></i>
+                    <span>Sản phẩm</span>
+                </a>
+                <a href="#" class="menu-item" data-page="accounts">
+                    <i class="fas fa-key"></i>
+                    <span>Kho tài khoản</span>
+                </a>
+                <a href="#" class="menu-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+                <a href="#" class="menu-item" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <h2 id="pageTitle">Dashboard</h2>
+                <div class="header-actions">
+                    <span class="admin-name">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="adminUsername">Admin</span>
+                    </span>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent" class="content-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statTotalOrders">0</h3>
+                            <p>Tổng đơn hàng</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statPendingOrders">0</h3>
+                            <p>Chờ thanh toán</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statPaidOrders">0</h3>
+                            <p>Đã thanh toán</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statRevenue">0đ</h3>
+                            <p>Doanh thu</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statProducts">0</h3>
+                            <p>Sản phẩm</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="statAccounts">0</h3>
+                            <p>Tài khoản trong kho</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Content -->
+            <div id="ordersContent" class="content-section" style="display: none;">
+                <div class="filter-bar">
+                    <select id="orderStatusFilter" class="filter-select">
+                        <option value="">Tất cả đơn hàng</option>
+                        <option value="pending">Chờ thanh toán</option>
+                        <option value="paid">Đã thanh toán</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadOrders()">
+                        <i class="fas fa-sync"></i> Làm mới
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Email</th>
+                                <th>Số tiền</th>
+                                <th>Thanh toán</th>
+                                <th>Giao hàng</th>
+                                <th>Ngày tạo</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Products Content -->
+            <div id="productsContent" class="content-section" style="display: none;">
+                <div class="filter-bar">
+                    <button class="btn btn-primary" id="btnAddProduct">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm
+                    </button>
+                </div>
+                <div class="products-grid" id="productsGrid">
+                    <!-- Products will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Accounts Content -->
+            <div id="accountsContent" class="content-section" style="display: none;">
+                <div class="filter-bar">
+                    <select id="accountProductFilter" class="filter-select">
+                        <option value="">Chọn sản phẩm</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="showAddAccountModal()">
+                        <i class="fas fa-plus"></i> Thêm tài khoản
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Sản phẩm</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Trạng thái</th>
+                                <th>Ngày thêm</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody">
+                            <tr>
+                                <td colspan="6" class="text-center">Chọn sản phẩm để xem tài khoản</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div id="settingsContent" class="content-section" style="display: none;">
+                <div class="settings-container">
+                    <div class="settings-card">
+                        <h3><i class="fas fa-lock"></i> Đổi mật khẩu</h3>
+                        <form id="changePasswordForm">
+                            <div class="form-group">
+                                <label>Mật khẩu cũ</label>
+                                <input type="password" id="oldPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Mật khẩu mới</label>
+                                <input type="password" id="newPassword" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Xác nhận mật khẩu mới</label>
+                                <input type="password" id="confirmPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Đổi mật khẩu
+                            </button>
+                        </form>
+                    </div>
+                    <div class="settings-card">
+                        <h3><i class="fab fa-telegram"></i> Cấu hình Telegram</h3>
+                        <p>Bot Token và Chat ID được cấu hình trong file <code>config.js</code></p>
+                        <button class="btn btn-secondary" onclick="testTelegram()">
+                            <i class="fas fa-test"></i> Test kết nối
+                        </button>
+                    </div>
+                    <div class="settings-card">
+                        <h3><i class="fas fa-credit-card"></i> Cấu hình Sepay</h3>
+                        <p>API Key và thông tin ngân hàng được cấu hình trong file <code>config.js</code></p>
+                        <button class="btn btn-secondary" onclick="testSepay()">
+                            <i class="fas fa-test"></i> Test kết nối
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
+            <div id="orderModalBody"></div>
+        </div>
+    </div>
+
+    <!-- Product Modal (for add/edit product) -->
+    <div id="productModal" class="modal" onclick="if(event.target === this) { this.style.display='none'; this.classList.remove('show'); }">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModalBtn" onclick="document.getElementById('productModal').style.display='none'; document.getElementById('productModal').classList.remove('show'); return false;">&times;</span>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script src="admin-script.js"></script>
+    <script src="admin-products.js"></script>
+</body>
+</html>
+
