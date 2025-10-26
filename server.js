@@ -20,10 +20,17 @@ const testRoutes = require('./routes/test');
 
 const app = express();
 
+// Trust proxy - Để Express nhận diện requests từ Nginx
+app.set('trust proxy', 1);
+
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 100 // Giới hạn 100 requests
+  max: 100, // Giới hạn 100 requests
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limit nếu từ localhost
+  skip: (req) => req.ip === '127.0.0.1' || req.ip === '::1'
 });
 
 // Middleware
