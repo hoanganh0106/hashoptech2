@@ -191,7 +191,7 @@
 
             <!-- Accounts Content -->
             <div id="accountsContent" class="content-section" style="display: none;">
-                <div class="filter-bar">
+                <div class="filter-bar" id="accountsFilterBar">
                     <select id="accountProductFilter" class="filter-select" onchange="loadAccountsByProduct()">
                         <option value="">Chọn sản phẩm</option>
                     </select>
@@ -203,12 +203,14 @@
                         <option value="available">Còn hàng</option>
                         <option value="sold">Đã bán</option>
                     </select>
-                    <button class="btn btn-primary" onclick="(function(){ var modal = document.getElementById('addAccountModal'); modal.style.display='block'; modal.classList.add('active'); fetch(window.location.origin + '/api/products').then(r=>r.json()).then(d=>{ if(d.success && d.products.length>0){ var sel=document.getElementById('addAccountProduct'); sel.innerHTML='<option value=&quot;&quot;>Chọn sản phẩm</option>'+d.products.map(p=>'<option value=&quot;'+p.id+'&quot;>'+p.name+'</option>').join(''); } }).catch(e=>console.error(e)); })(); return false;">
-                        <i class="fas fa-plus"></i> Thêm tài khoản
-                    </button>
                     <button class="btn btn-secondary" onclick="loadAccountsByProduct()">
                         <i class="fas fa-sync"></i> Làm mới
                     </button>
+                </div>
+                
+                <!-- BUTTON RIÊNG BIỆT - KHÔNG NẰM TRONG FILTER BAR -->
+                <div style="margin-bottom: 1rem;">
+                    <div id="addAccountButtonContainer"></div>
                 </div>
                 
                 <!-- Stock Summary -->
@@ -298,7 +300,7 @@
     </div>
 
     <!-- Add Account Modal -->
-    <div id="addAccountModal" class="modal">
+    <div id="addAccountModal" class="modal" onclick="if(event.target === this) { this.style.display='none'; this.classList.remove('active'); document.getElementById('addAccountForm').reset(); document.getElementById('variantSelectGroup').style.display='none'; }">
         <div class="modal-content" style="max-width: 700px;">
             <span class="close-modal" onclick="document.getElementById('addAccountModal').style.display='none'; document.getElementById('addAccountModal').classList.remove('active'); document.getElementById('addAccountForm').reset(); document.getElementById('variantSelectGroup').style.display='none'; return false;">&times;</span>
             <div id="addAccountModalBody">
@@ -346,6 +348,154 @@
     <script src="admin-script.js"></script>
     <script src="admin-products.js"></script>
     <script src="admin-stock.js"></script>
+    <script>
+    // TẠO NÚT ĐỘNG VỚI MUTATIONOBSERVER - SOLUTION CUỐI CÙNG
+    (function() {
+        console.log('🚀 Initializing Add Account Button with MutationObserver...');
+        
+        let currentButton = null;
+        
+        function createAddAccountButton() {
+            const container = document.getElementById('addAccountButtonContainer');
+            if (!container) {
+                console.warn('⚠️ Container not found yet');
+                return null;
+            }
+            
+            // Nếu đã có button và vẫn hoạt động, không tạo lại
+            if (currentButton && currentButton.parentNode === container && currentButton.onclick) {
+                console.log('✅ Button already exists and working');
+                return currentButton;
+            }
+            
+            console.log('🔨 Creating new button...');
+            
+            // Tạo nút mới hoàn toàn
+            const button = document.createElement('button');
+            button.className = 'btn btn-primary';
+            button.id = 'btnAddAccountFinal';
+            button.style.cssText = 'position: relative; z-index: 9999 !important; cursor: pointer !important; pointer-events: auto !important;';
+            button.type = 'button';
+            button.innerHTML = '<i class="fas fa-plus"></i> Thêm tài khoản';
+            
+            // Attach click handler
+            button.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                console.log('🎯 BUTTON CLICKED!');
+                
+                const modal = document.getElementById('addAccountModal');
+                if (!modal) {
+                    alert('Không tìm thấy modal!');
+                    return false;
+                }
+                
+                modal.style.display = 'block';
+                modal.classList.add('active');
+                console.log('✅ Modal opened');
+                
+                // Load products
+                fetch(window.location.origin + '/api/products')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success && data.products && data.products.length > 0) {
+                            const select = document.getElementById('addAccountProduct');
+                            if (select) {
+                                select.innerHTML = '<option value="">Chọn sản phẩm</option>' +
+                                    data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                                console.log('✅ Products loaded:', data.products.length);
+                            }
+                        }
+                    })
+                    .catch(err => console.error('❌ Error:', err));
+                
+                return false;
+            };
+            
+            // Clear và insert
+            container.innerHTML = '';
+            container.appendChild(button);
+            currentButton = button;
+            console.log('✅ Button created successfully');
+            
+            return button;
+        }
+        
+        // Setup MutationObserver để tự động tạo lại button
+        function setupObserver() {
+            const container = document.getElementById('addAccountButtonContainer');
+            if (!container) {
+                setTimeout(setupObserver, 100);
+                return;
+            }
+            
+            console.log('👁️ Setting up MutationObserver...');
+            
+            const observer = new MutationObserver(function(mutations) {
+                console.log('🔄 DOM changed, checking button...');
+                // Kiểm tra button còn tồn tại không
+                const btn = document.getElementById('btnAddAccountFinal');
+                if (!btn || !btn.onclick) {
+                    console.log('⚠️ Button missing or broken, recreating...');
+                    createAddAccountButton();
+                }
+            });
+            
+            // Quan sát container và parent của nó
+            observer.observe(container, {
+                childList: true,
+                subtree: true,
+                attributes: true
+            });
+            
+            // Quan sát filter bar
+            const filterBar = document.getElementById('accountsFilterBar');
+            if (filterBar) {
+                observer.observe(filterBar, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            console.log('✅ Observer active');
+        }
+        
+        // Init
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                createAddAccountButton();
+                setupObserver();
+            });
+        } else {
+            createAddAccountButton();
+            setupObserver();
+        }
+        
+        // Hook navigate
+        const originalNavigate = window.navigateToPage;
+        window.navigateToPage = function(page) {
+            if (typeof originalNavigate === 'function') {
+                originalNavigate.apply(this, arguments);
+            }
+            if (page === 'accounts') {
+                setTimeout(createAddAccountButton, 200);
+            }
+        };
+        
+        // Expose global
+        window.forceRecreateAddAccountButton = createAddAccountButton;
+        
+        // Tạo lại button mỗi 2 giây (fallback cuối cùng)
+        setInterval(function() {
+            const btn = document.getElementById('btnAddAccountFinal');
+            if (!btn || !btn.parentNode) {
+                console.log('⏰ Periodic check: button missing, recreating...');
+                createAddAccountButton();
+            }
+        }, 2000);
+    })();
+    </script>
 </body>
 </html>
 

@@ -218,10 +218,11 @@ router.get('/:productId/stock', authenticateToken, requireAdmin, async (req, res
   try {
     const { productId } = req.params;
     
+    const mongoose = require('mongoose');
     const accounts = await Account.aggregate([
       {
         $match: {
-          productId: require('mongoose').Types.ObjectId(productId),
+          productId: new mongoose.Types.ObjectId(productId),
           status: 'available'
         }
       },
