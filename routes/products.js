@@ -248,4 +248,140 @@ router.get('/:productId/stock', authenticateToken, requireAdmin, async (req, res
   }
 });
 
+/**
+ * POST /api/products/:productId/stock - Thêm tài khoản vào kho (admin only)
+ */
+router.post('/:productId/stock', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { variantName, accounts } = req.body;
+
+    // Validate
+    if (!variantName || !accounts || !Array.isArray(accounts) || accounts.length === 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Thiếu thông tin: variantName và accounts (array) là bắt buộc' 
+      });
+    }
+
+    // Kiểm tra product tồn tại
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Không tìm thấy sản phẩm' 
+      });
+    }
+
+    // Kiểm tra variant tồn tại
+    const variant = product.variants.find(v => v.name === variantName);
+    if (!variant) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Không tìm thấy gói/variant này trong sản phẩm' 
+      });
+    }
+
+    // Tạo các account
+    const accountDocs = accounts.map(acc => ({
+      productId,
+      productName: product.name,
+      variantName: variantName,
+      price: variant.price,
+      username: acc.username || acc.account || '',
+      password: acc.password || '',
+      additionalInfo: acc.additionalInfo || acc.note || '',
+      status: 'available'
+    }));
+
+    const createdAccounts = await Account.insertMany(accountDocs);
+
+    res.json({
+      success: true,
+      message: `Đã thêm ${createdAccounts.length} tài khoản vào kho`,
+      count: createdAccounts.length
+    });
+  } catch (error) {
+    console.error('Add stock error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Lỗi thêm tài khoản vào kho: ' + error.message 
+    });
+  }
+});
+
+/**
+ * GET /api/products/:productId/accounts - Lấy danh sách tài khoản trong kho (admin only)
+ */
+router.get('/:productId/accounts', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { variantName, status } = req.query;
+
+    const query = { productId };
+    if (variantName) query.variantName = variantName;
+    if (status) query.status = status;
+
+    const accounts = await Account.find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      accounts: accounts.map(acc => ({
+        id: acc._id.toString(),
+        username: acc.username,
+        password: acc.password,
+        variantName: acc.variantName,
+        status: acc.status,
+        additionalInfo: acc.additionalInfo,
+        createdAt: acc.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get accounts error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Lỗi lấy danh sách tài khoản' 
+    });
+  }
+});
+
+/**
+ * DELETE /api/products/:productId/accounts/:accountId - Xóa tài khoản khỏi kho (admin only)
+ */
+router.delete('/:productId/accounts/:accountId', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { accountId } = req.params;
+
+    const account = await Account.findById(accountId);
+    if (!account) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Không tìm thấy tài khoản' 
+      });
+    }
+
+    if (account.status === 'sold') {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Không thể xóa tài khoản đã bán' 
+      });
+    }
+
+    await Account.findByIdAndDelete(accountId);
+
+    res.json({
+      success: true,
+      message: 'Đã xóa tài khoản khỏi kho'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Lỗi xóa tài khoản' 
+    });
+  }
+});
+
 module.exports = router;
