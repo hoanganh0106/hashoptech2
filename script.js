@@ -216,18 +216,16 @@ function closeModal() {
 function addToCart(productId, variant = null, event = null) {
     if (event) {
         event.stopPropagation();
+        event.preventDefault();
     }
 
     const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    // Nếu sản phẩm có variants nhưng chưa chọn, mở modal để chọn
-    if (!variant && product.variants && product.variants.length > 0) {
-        showProductDetails(productId);
+    if (!product) {
+        console.error('Product not found:', productId);
         return;
     }
 
-    // Xác định variant để dùng
+    // Tự động chọn variant đầu tiên nếu sản phẩm có variants
     const selectedVariant = variant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
     
     // Tạo unique key cho cart item (product + variant)
@@ -238,14 +236,17 @@ function addToCart(productId, variant = null, event = null) {
     const existingItem = cart.find(item => item.cartItemKey === cartItemKey);
     
     if (existingItem) {
+        console.log('⚠️ Product already in cart');
         showNotification('Sản phẩm đã có trong giỏ hàng!', 'warning');
         return;
     }
 
-    const price = selectedVariant ? selectedVariant.price : product.price;
+    const price = selectedVariant ? selectedVariant.price : (product.price || 0);
     const displayName = selectedVariant 
         ? `${product.name} - ${selectedVariant.name}`
         : product.name;
+
+    console.log('✅ Adding to cart:', displayName, 'Price:', price);
 
     cart.push({
         id: product.id,
