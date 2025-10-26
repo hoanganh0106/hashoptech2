@@ -15,35 +15,67 @@ async function handleSepayWebhook(req, res) {
   try {
     console.log('📥 Nhận webhook từ Sepay:', req.body);
 
-    const { transaction_id, amount, content, bank_code, status } = req.body;
+    // Sepay gửi data với format khác
+    const {
+      id,
+      referenceCode,
+      transferAmount,
+      content,
+      gateway,
+      transferType,
+      code
+    } = req.body;
+
+    const transaction_id = referenceCode || id;
+    const amount = transferAmount;
+    const bank_code = gateway;
+
+    console.log('💰 Số tiền:', amount);
+    console.log('📝 Nội dung:', content);
+    console.log('🆔 Mã GD:', transaction_id);
 
     // TODO: Lưu payment log vào MongoDB nếu cần
 
-    // Chỉ xử lý giao dịch thành công
-    if (status !== 'success' && status !== 'completed') {
-      console.log('⚠️  Giao dịch chưa hoàn thành:', status);
+    // Chỉ xử lý giao dịch chuyển vào
+    if (transferType !== 'in') {
+      console.log('⚠️  Không phải giao dịch chuyển vào:', transferType);
       return res.json({ success: true, message: 'Đã nhận webhook' });
     }
 
     // Tìm đơn hàng khớp với nội dung chuyển khoản
-    const orders = await Order.find({ paymentStatus: 'pending' });
+    let matchedOrder = null;
 
-    if (!orders || orders.length === 0) {
-      console.log('⚠️  Không có đơn hàng pending');
-      return res.json({ success: true, message: 'Không có đơn hàng phù hợp' });
+    // Ưu tiên tìm theo field 'code' nếu Sepay gửi
+    if (code) {
+      console.log('🔍 Tìm đơn hàng theo code:', code);
+      matchedOrder = await Order.findOne({
+        orderCode: code,
+        paymentStatus: 'pending'
+      });
+      
+      if (matchedOrder) {
+        console.log('✅ Tìm thấy đơn hàng theo code:', matchedOrder.orderCode);
+      }
     }
 
-    // Tìm đơn hàng khớp với nội dung CK
-    let matchedOrder = null;
-    const contentLower = content.toLowerCase().trim();
+    // Nếu không tìm thấy, tìm theo nội dung chuyển khoản
+    if (!matchedOrder && content) {
+      console.log('🔍 Tìm đơn hàng theo content');
+      const orders = await Order.find({ paymentStatus: 'pending' });
 
-    for (const order of orders) {
-      const orderCodeLower = order.orderCode.toLowerCase();
-      
-      // Kiểm tra khớp mã đơn hàng và số tiền
-      if (contentLower.includes(orderCodeLower) && Math.abs(amount - order.totalAmount) < 1000) {
-        matchedOrder = order;
-        break;
+      if (orders && orders.length > 0) {
+        const contentLower = content.toLowerCase().trim();
+
+        for (const order of orders) {
+          const orderCodeLower = order.orderCode.toLowerCase();
+          
+          // Kiểm tra khớp mã đơn hàng và số tiền
+          if (contentLower.includes(orderCodeLower) && Math.abs(amount - order.totalAmount) < 1000) {
+            matchedOrder = order;
+            console.log('✅ Tìm thấy đơn hàng theo content:', matchedOrder.orderCode);
+            break;
+          }
+        }
       }
     }
 
