@@ -420,6 +420,15 @@ function setupEventListeners() {
         showNotification('Đang xử lý đơn hàng...', 'info');
 
         try {
+            // Transform cart to backend format
+            const orderItems = cart.map(item => ({
+                productId: item.id,
+                variantId: item.variantId,
+                quantity: 1
+            }));
+
+            console.log('📦 Order items:', orderItems);
+
             // Create order via API
             const response = await fetch(`${API_BASE}/orders`, {
                 method: 'POST',
@@ -427,13 +436,10 @@ function setupEventListeners() {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    customer_name: customerName,
-                    customer_email: customerEmail,
-                    customer_phone: customerPhone,
-                    payment_method: paymentMethod,
-                    order_note: orderNote,
-                    items: cart,
-                    total_amount: totalAmount
+                    customerName: customerName,  // camelCase
+                    customerEmail: customerEmail,  // camelCase
+                    customerPhone: customerPhone,  // camelCase
+                    items: orderItems  // Đúng format backend expect
                 })
             });
 

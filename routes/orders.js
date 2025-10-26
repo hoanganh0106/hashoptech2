@@ -27,10 +27,29 @@ router.post('/', async (req, res) => {
 
     for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) continue;
+      if (!product) {
+        console.log('⚠️ Product not found:', item.productId);
+        continue;
+      }
 
-      const variant = product.variants.id(item.variantId);
-      if (!variant) continue;
+      // Tìm variant - có thể là id, index, hoặc name
+      let variant;
+      if (item.variantId) {
+        variant = product.variants.id(item.variantId) || 
+                  product.variants.find(v => v.name === item.variantId);
+      }
+      
+      // Nếu không tìm thấy, dùng variant đầu tiên
+      if (!variant && product.variants && product.variants.length > 0) {
+        variant = product.variants[0];
+      }
+
+      if (!variant) {
+        console.log('⚠️ No variant found for product:', product.name);
+        continue;
+      }
+
+      console.log('✅ Adding order item:', product.name, '-', variant.name, ':', variant.price);
 
       orderItems.push({
         productId: product._id,
@@ -69,14 +88,23 @@ router.post('/', async (req, res) => {
 
     await order.save();
 
+    console.log('✅ Order created:', order.orderCode);
+
     res.json({
       success: true,
       message: 'Đã tạo đơn hàng',
       order: {
         id: order._id.toString(),
-        orderCode: order.orderCode,
+        order_code: order.orderCode,
         totalAmount: order.totalAmount,
         qrCodeUrl: order.qrCodeUrl
+      },
+      payment: {
+        qrCodeUrl: order.qrCodeUrl,
+        accountNumber: config.sepay.accountNumber,
+        bankCode: config.sepay.bankCode,
+        amount: order.totalAmount,
+        content: orderCode
       }
     });
   } catch (error) {
