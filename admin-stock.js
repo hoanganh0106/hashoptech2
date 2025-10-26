@@ -143,21 +143,21 @@ async function loadStockSummary(productId) {
 /**
  * Show add account modal
  */
-function showAddAccountModal() {
+window.showAddAccountModal = function() {
     document.getElementById('addAccountModal').style.display = 'block';
     document.getElementById('addAccountModal').classList.add('active');
     loadProductsForAddModal();
-}
+};
 
 /**
  * Close add account modal
  */
-function closeAddAccountModal() {
+window.closeAddAccountModal = function() {
     document.getElementById('addAccountModal').style.display = 'none';
     document.getElementById('addAccountModal').classList.remove('active');
     document.getElementById('addAccountForm').reset();
     document.getElementById('variantSelectGroup').style.display = 'none';
-}
+};
 
 /**
  * Load products for add modal
@@ -180,7 +180,7 @@ async function loadProductsForAddModal() {
 /**
  * Load variants when product selected
  */
-async function loadVariantsForAdd() {
+window.loadVariantsForAdd = async function() {
     const productId = document.getElementById('addAccountProduct').value;
     const variantGroup = document.getElementById('variantSelectGroup');
     const variantSelect = document.getElementById('addAccountVariant');
@@ -207,7 +207,7 @@ async function loadVariantsForAdd() {
 /**
  * Submit add accounts
  */
-async function submitAddAccounts(e) {
+window.submitAddAccounts = async function(e) {
     e.preventDefault();
 
     const productId = document.getElementById('addAccountProduct').value;
@@ -282,7 +282,7 @@ async function submitAddAccounts(e) {
 /**
  * Delete account
  */
-async function deleteAccount(productId, accountId) {
+window.deleteAccount = async function(productId, accountId) {
     if (!confirm('Xóa tài khoản này khỏi kho?')) return;
 
     try {

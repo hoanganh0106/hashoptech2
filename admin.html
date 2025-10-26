@@ -203,7 +203,7 @@
                         <option value="available">Còn hàng</option>
                         <option value="sold">Đã bán</option>
                     </select>
-                    <button class="btn btn-primary" onclick="document.getElementById('addAccountModal').style.display='block'; document.getElementById('addAccountModal').classList.add('active'); if(typeof loadProductsForAddModal === 'function') loadProductsForAddModal();">
+                    <button class="btn btn-primary" onclick="(function(){ var modal = document.getElementById('addAccountModal'); modal.style.display='block'; modal.classList.add('active'); fetch(window.location.origin + '/api/products').then(r=>r.json()).then(d=>{ if(d.success && d.products.length>0){ var sel=document.getElementById('addAccountProduct'); sel.innerHTML='<option value=&quot;&quot;>Chọn sản phẩm</option>'+d.products.map(p=>'<option value=&quot;'+p.id+'&quot;>'+p.name+'</option>').join(''); } }).catch(e=>console.error(e)); })(); return false;">
                         <i class="fas fa-plus"></i> Thêm tài khoản
                     </button>
                     <button class="btn btn-secondary" onclick="loadAccountsByProduct()">
@@ -300,7 +300,7 @@
     <!-- Add Account Modal -->
     <div id="addAccountModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
-            <span class="close-modal" onclick="closeAddAccountModal()">&times;</span>
+            <span class="close-modal" onclick="document.getElementById('addAccountModal').style.display='none'; document.getElementById('addAccountModal').classList.remove('active'); document.getElementById('addAccountForm').reset(); document.getElementById('variantSelectGroup').style.display='none'; return false;">&times;</span>
             <div id="addAccountModalBody">
                 <h2><i class="fas fa-plus-circle"></i> Thêm Tài Khoản Vào Kho</h2>
                 <form id="addAccountForm" onsubmit="submitAddAccounts(event)">
@@ -334,7 +334,7 @@
                         <button type="submit" class="btn btn-primary" style="flex:1;">
                             <i class="fas fa-save"></i> Lưu tài khoản
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeAddAccountModal()">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('addAccountModal').style.display='none'; document.getElementById('addAccountModal').classList.remove('active'); document.getElementById('addAccountForm').reset(); document.getElementById('variantSelectGroup').style.display='none'; return false;">
                             <i class="fas fa-times"></i> Hủy
                         </button>
                     </div>
