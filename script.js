@@ -76,7 +76,7 @@ function renderProducts() {
                     ` : ''}
                     <div class="product-footer">
                         <div class="product-price">${priceDisplay}</div>
-                        <button class="btn-add-cart" onclick="addToCart('${product.id}', null, event)">
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('${product.id}', null, event);">
                             <i class="fas fa-cart-plus"></i> Thêm
                         </button>
                     </div>
