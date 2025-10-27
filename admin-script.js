@@ -39,6 +39,9 @@ function setupEventListeners() {
     document.getElementById('orderStatusFilter')?.addEventListener('change', loadOrders);
 
     // Account filters are handled inline with onchange in HTML
+    
+    // Setup mobile menu
+    setupMobileMenu();
 }
 
 // Setup Product Button với event listener
@@ -999,5 +1002,47 @@ function loadProducts() {
     } else {
         originalLoadProducts();
     }
+}
+
+// Mobile menu toggle functionality
+function setupMobileMenu() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    
+    if (!toggleBtn || !sidebar) return;
+    
+    // Create backdrop element
+    const backdrop = document.createElement('div');
+    backdrop.className = 'mobile-backdrop';
+    document.body.appendChild(backdrop);
+    
+    // Toggle sidebar when hamburger button is clicked
+    toggleBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('mobile-open');
+        backdrop.classList.toggle('show');
+    });
+    
+    // Close sidebar when backdrop is clicked
+    backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('mobile-open');
+        backdrop.classList.remove('show');
+    });
+    
+    // Close sidebar when menu item is clicked (on mobile)
+    const menuItems = sidebar.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            sidebar.classList.remove('mobile-open');
+            backdrop.classList.remove('show');
+        });
+    });
+    
+    // Close sidebar on window resize if screen becomes larger
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('mobile-open');
+            backdrop.classList.remove('show');
+        }
+    });
 }
 

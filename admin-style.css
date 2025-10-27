@@ -1084,31 +1084,275 @@ body {
     transform: rotate(90deg);
 }
 
-/* Responsive */
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 1rem;
+}
+
+.mobile-menu-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Mobile Backdrop */
+.mobile-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.mobile-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .admin-dashboard {
-        margin-left: 0;
+    /* Mobile Menu Toggle */
+    .mobile-menu-toggle {
+        display: block;
     }
     
+    /* Sidebar Mobile Behavior */
     .admin-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s;
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100vh;
+        z-index: 999;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transform: none;
     }
     
-    .admin-sidebar.open {
-        transform: translateX(0);
-    }
-    
-    .admin-header {
+    .admin-sidebar.mobile-open {
         left: 0;
     }
     
+    .admin-sidebar.open {
+        left: 0;
+    }
+    
+    /* Main Content */
+    .admin-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    /* Header */
+    .admin-header {
+        left: 0;
+        padding: 1rem;
+    }
+    
+    .header-left h1 {
+        font-size: 1.2rem;
+    }
+    
+    .header-right {
+        gap: 0.5rem;
+    }
+    
+    .admin-name {
+        display: none;
+    }
+    
+    .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    /* Tables */
+    .orders-table-container,
+    .accounts-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .orders-table,
+    .accounts-table {
+        min-width: 600px;
+        font-size: 0.875rem;
+    }
+    
+    .orders-table th,
+    .orders-table td,
+    .accounts-table th,
+    .accounts-table td {
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+    
+    /* Products Grid */
     .products-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .product-card {
+        padding: 1rem;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .product-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Forms */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-input,
+    .form-textarea,
+    .form-select {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 0.75rem;
+    }
+    
+    /* Modals */
+    .modal-content {
+        margin: 1rem;
+        padding: 1rem;
+        max-height: 95vh;
+        overflow-y: auto;
+        width: calc(100% - 2rem);
+    }
+    
+    .modal-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    /* Settings Grid */
+    .settings-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .settings-card {
+        padding: 1rem;
+    }
+    
+    /* Buttons */
+    .btn {
+        min-height: 44px; /* Touch-friendly */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Section Headers */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    /* Filters */
+    .filter-select {
+        width: 100%;
+        font-size: 16px;
+    }
+    
+    /* Status Badges */
+    .status-badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+    }
+}
+
+/* Tablet Styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .admin-sidebar {
+        width: 200px;
+    }
+    
+    .admin-content {
+        margin-left: 200px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .orders-table-container,
+    .accounts-table-container {
+        overflow-x: auto;
+    }
+}
+
+/* Large Mobile Styles */
+@media (max-width: 480px) {
+    .admin-content {
+        padding: 0.5rem;
+    }
+    
+    .admin-header {
+        padding: 0.75rem;
+    }
+    
+    .header-left h1 {
+        font-size: 1rem;
     }
     
     .modal-content {
-        padding: 1.5rem;
-        max-height: 95vh;
+        margin: 0.5rem;
+        padding: 0.75rem;
+        width: calc(100% - 1rem);
+    }
+    
+    .orders-table,
+    .accounts-table {
+        font-size: 0.75rem;
+        min-width: 500px;
+    }
+    
+    .orders-table th,
+    .orders-table td,
+    .accounts-table th,
+    .accounts-table td {
+        padding: 0.25rem;
     }
 }
