@@ -20,26 +20,36 @@ router.get('/', async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    // Format response
-    const formattedProducts = products.map(product => ({
-      id: product._id.toString(),
-      name: product.name,
-      description: product.description,
-      image_url: product.imageUrl,
-      category: product.category,
-      variants: product.variants.map(v => ({
-        id: v._id.toString(),
-        name: v.name,
-        price: v.price,
-        duration_value: v.duration_value,
-        duration_unit: v.duration_unit
-      })),
-      created_at: product.createdAt
+    // Get stock count for each product
+    const productsWithStock = await Promise.all(products.map(async (product) => {
+      const stockCount = await Account.countDocuments({
+        productId: product._id.toString(),
+        status: 'available'
+      });
+
+      return {
+        id: product._id.toString(),
+        name: product.name,
+        description: product.description,
+        image_url: product.imageUrl,
+        category: product.category,
+        icon: product.icon,
+        stock: stockCount,
+        variants: product.variants.map(v => ({
+          id: v._id.toString(),
+          name: v.name,
+          description: v.description || '',
+          price: v.price,
+          duration_value: v.duration_value,
+          duration_unit: v.duration_unit
+        })),
+        created_at: product.createdAt
+      };
     }));
 
     res.json({
       success: true,
-      products: formattedProducts
+      products: productsWithStock
     });
   } catch (error) {
     console.error('Get products error:', error);
@@ -99,6 +109,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       category: category || 'other',
       variants: variants.map(v => ({
         name: v.name,
+        description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
         duration_unit: v.duration_unit || 'month'
@@ -144,6 +155,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     if (variants) {
       product.variants = variants.map(v => ({
         name: v.name,
+        description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
         duration_unit: v.duration_unit || 'month'
@@ -331,6 +343,8 @@ router.get('/:productId/accounts', authenticateToken, requireAdmin, async (req, 
       success: true,
       accounts: accounts.map(acc => ({
         id: acc._id.toString(),
+        _id: acc._id.toString(),
+        productId: acc.productId.toString(),
         username: acc.username,
         password: acc.password,
         variantName: acc.variantName,

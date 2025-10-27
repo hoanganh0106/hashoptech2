@@ -9,6 +9,7 @@ let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 DOM loaded, initializing...');
     loadProducts();
     updateCartUI();
     setupEventListeners();
@@ -17,15 +18,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load Products from API
 async function loadProducts() {
     try {
+        console.log('📦 Loading products from API...');
         const response = await fetch(`${API_BASE}/products`);
+        console.log('📡 API Response:', response.status, response.statusText);
+        
         const data = await response.json();
+        console.log('📊 API Data:', data);
 
         if (data.success) {
             products = data.products;
+            console.log('✅ Products loaded:', products.length);
             renderProducts();
+        } else {
+            console.error('❌ API returned error:', data.error);
         }
     } catch (error) {
-        console.error('Lỗi tải sản phẩm:', error);
+        console.error('❌ Lỗi tải sản phẩm:', error);
         showNotification('Không thể tải sản phẩm', 'error');
     }
 }
@@ -76,8 +84,8 @@ function renderProducts() {
                     ` : ''}
                     <div class="product-footer">
                         <div class="product-price">${priceDisplay}</div>
-                        <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart('${product.id}', null, event);">
-                            <i class="fas fa-cart-plus"></i> Thêm
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); event.preventDefault(); showProductDetails('${product.id}');">
+                            <i class="fas fa-shopping-cart"></i> Chọn gói
                         </button>
                     </div>
                 </div>
@@ -120,10 +128,10 @@ function showProductDetails(productId) {
                         
                         return `
                             <label class="variant-option ${index === 0 ? 'selected' : ''}" style="display: flex; align-items: center; padding: 1rem; border: 2px solid ${index === 0 ? 'var(--primary-color)' : '#e2e8f0'}; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
-                                <input type="radio" name="variant" value="${variant.id || index}" ${index === 0 ? 'checked' : ''} style="margin-right: 1rem;" onchange="selectVariant(${productId}, ${index})">
+                                <input type="radio" name="variant" value="${variant.id || index}" ${index === 0 ? 'checked' : ''} style="margin-right: 1rem;" onchange="selectVariant('${productId}', ${index})">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; color: var(--dark-color);">${variant.name}</div>
-                                    <div style="font-size: 0.9rem; color: #666;">${durationText}${variant.description ? ' - ' + variant.description : ''}</div>
+                                    <div style="font-size: 0.9rem; color: #666;">${variant.description || ''}</div>
                                 </div>
                                 <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">
                                     ${formatPrice(variant.price)}
@@ -135,18 +143,20 @@ function showProductDetails(productId) {
             </div>
         ` : ''}
 
-        <div style="background: var(--light-color); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
-            <h3 style="margin-bottom: 1rem; color: var(--dark-color);">Tính năng nổi bật:</h3>
-            <ul class="product-features">
-                ${product.features.map(feature => `<li>${feature}</li>`).join('')}
-            </ul>
-        </div>
+        ${product.features && product.features.length > 0 ? `
+            <div style="background: var(--light-color); padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--dark-color);">Tính năng nổi bật:</h3>
+                <ul class="product-features">
+                    ${product.features.map(feature => `<li>${feature}</li>`).join('')}
+                </ul>
+            </div>
+        ` : ''}
 
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div class="product-price" style="font-size: 2rem;" id="selectedPrice">
                 ${hasVariants ? formatPrice(defaultVariant.price) : formatPrice(product.price)}
             </div>
-            <button class="btn btn-primary" onclick="addToCartFromModal(${product.id}); closeModal();" style="padding: 1rem 2rem;">
+            <button class="btn btn-primary" onclick="addToCartFromModal('${product.id}'); closeModal();" style="padding: 1rem 2rem;">
                 <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
             </button>
         </div>

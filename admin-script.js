@@ -55,12 +55,12 @@ function setupProductButton() {
             e.stopPropagation();
             console.log('🔥 Button clicked!');
             
-            // Gọi function thêm sản phẩm
-            showAddProductForm();
+        // Gọi function thêm sản phẩm
+        showAddProductModalNew();
         });
         console.log('✅ Product button setup complete');
     } else {
-        console.log('⚠️ Button not found');
+        console.log('btnAddProduct element not found, skipping setup...');
     }
 }
 
@@ -393,16 +393,27 @@ function handleLogout(e) {
     showLoginPage();
 }
 
+// Logout
+function logout() {
+    authToken = null;
+    currentUser = null;
+    localStorage.removeItem('adminToken');
+    showLoginPage();
+}
+
 // Show pages
 function showLoginPage() {
     document.getElementById('loginPage').style.display = 'flex';
-    document.getElementById('dashboardPage').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'none';
 }
 
 function showDashboard() {
     document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashboardPage').style.display = 'flex';
+    document.getElementById('adminDashboard').style.display = 'flex';
     document.getElementById('adminUsername').textContent = currentUser?.username || 'Admin';
+    
+    // Setup sidebar navigation after showing dashboard
+    setupSidebarNavigation();
 }
 
 // Navigate
@@ -429,7 +440,12 @@ function navigateToPage(page) {
         'settings': 'Cài đặt'
     };
 
-    document.getElementById('pageTitle').textContent = pageTitle[page] || 'Dashboard';
+    // Update page title if element exists
+    const pageTitleElement = document.getElementById('pageTitle');
+    if (pageTitleElement) {
+        pageTitleElement.textContent = pageTitle[page] || 'Dashboard';
+    }
+    
     document.getElementById(`${page}Content`).style.display = 'block';
 
     // Load data for page
@@ -450,6 +466,18 @@ function navigateToPage(page) {
     }
 }
 
+// Setup Sidebar Navigation
+function setupSidebarNavigation() {
+    document.querySelectorAll('.menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const page = item.dataset.page;
+            if (page) {
+                navigateToPage(page);
+            }
+        });
+    });
+}
+
 // Load Dashboard Stats
 async function loadDashboardStats() {
     try {
@@ -461,12 +489,17 @@ async function loadDashboardStats() {
 
         if (data.success) {
             const stats = data.stats;
-            document.getElementById('statTotalOrders').textContent = stats.totalOrders;
-            document.getElementById('statPendingOrders').textContent = stats.pendingOrders;
-            document.getElementById('statPaidOrders').textContent = stats.paidOrders;
-            document.getElementById('statRevenue').textContent = formatPrice(stats.totalRevenue);
-            document.getElementById('statProducts').textContent = stats.totalProducts;
-            document.getElementById('statAccounts').textContent = stats.availableAccounts;
+            
+            // Update dashboard stats with correct element IDs
+            const totalProductsEl = document.getElementById('totalProducts');
+            const totalOrdersEl = document.getElementById('totalOrders');
+            const totalRevenueEl = document.getElementById('totalRevenue');
+            const totalAccountsEl = document.getElementById('totalAccounts');
+            
+            if (totalProductsEl) totalProductsEl.textContent = stats.totalProducts || 0;
+            if (totalOrdersEl) totalOrdersEl.textContent = stats.totalOrders || 0;
+            if (totalRevenueEl) totalRevenueEl.textContent = formatPrice(stats.totalRevenue) || '0đ';
+            if (totalAccountsEl) totalAccountsEl.textContent = stats.availableAccounts || 0;
         }
     } catch (error) {
         console.error('Lỗi tải stats:', error);
@@ -479,7 +512,7 @@ async function loadOrders() {
     const tbody = document.getElementById('ordersTableBody');
 
     try {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Đang tải...</td></tr>';
 
         const url = `${API_BASE}/orders${status ? '?status=' + status : ''}`;
         const response = await fetch(url, {
@@ -496,7 +529,6 @@ async function loadOrders() {
                     <td>${order.customer_email}</td>
                     <td><strong>${formatPrice(order.total_amount)}</strong></td>
                     <td><span class="status-badge status-${order.payment_status}">${getStatusText(order.payment_status)}</span></td>
-                    <td><span class="status-badge status-${order.delivery_status}">${getStatusText(order.delivery_status)}</span></td>
                     <td>${formatDate(order.created_at)}</td>
                     <td>
                         <button class="btn btn-primary" onclick="viewOrder('${order.order_code}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
@@ -506,10 +538,10 @@ async function loadOrders() {
                 </tr>
             `).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Không có đơn hàng</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Không có đơn hàng</td></tr>';
         }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Lỗi tải dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Lỗi tải dữ liệu</td></tr>';
     }
 }
 
@@ -598,7 +630,12 @@ async function loadProducts() {
         const response = await fetch(`${API_BASE}/products`);
         const data = await response.json();
 
-        const grid = document.getElementById('productsGrid');
+        const grid = document.getElementById('productsList');
+        
+        if (!grid) {
+            console.error('productsList element not found');
+            return;
+        }
 
         if (data.success && data.products.length > 0) {
             grid.innerHTML = data.products.map(product => `
@@ -634,6 +671,12 @@ async function loadProductsForFilter() {
         const data = await response.json();
 
         const select = document.getElementById('accountProductFilter');
+        
+        // Check if element exists before using it
+        if (!select) {
+            console.log('accountProductFilter element not found, skipping...');
+            return;
+        }
 
         if (data.success && data.products.length > 0) {
             select.innerHTML = '<option value="">Chọn sản phẩm</option>' +
@@ -648,6 +691,12 @@ async function loadProductsForFilter() {
 async function loadAccountStock() {
     const productId = document.getElementById('accountProductFilter')?.value;
     const tbody = document.getElementById('accountsTableBody');
+    
+    // Check if required elements exist
+    if (!tbody) {
+        console.log('accountsTableBody element not found');
+        return;
+    }
 
     if (!productId) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">Chọn sản phẩm để xem tài khoản</td></tr>';
@@ -657,7 +706,7 @@ async function loadAccountStock() {
     try {
         tbody.innerHTML = '<tr><td colspan="6" class="text-center">Đang tải...</td></tr>';
 
-        const response = await fetch(`${API_BASE}/products/${productId}/stock`, {
+        const response = await fetch(`${API_BASE}/products/${productId}/accounts`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
 
@@ -666,12 +715,20 @@ async function loadAccountStock() {
         if (data.success && data.accounts.length > 0) {
             tbody.innerHTML = data.accounts.map(acc => `
                 <tr>
-                    <td>${acc.id}</td>
-                    <td>Sản phẩm #${acc.product_id}</td>
+                    <td>${acc._id || acc.id}</td>
+                    <td>Sản phẩm #${acc.productId || acc.product_id}</td>
                     <td>${acc.username}</td>
                     <td>${acc.password}</td>
-                    <td><span class="status-badge status-${acc.status}">${getStatusText(acc.status)}</span></td>
-                    <td>${formatDate(acc.created_at)}</td>
+                    <td>
+                        <span class="badge ${acc.status === 'available' ? 'badge-success' : 'badge-secondary'}">
+                            ${acc.status === 'available' ? 'Có sẵn' : 'Đã bán'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-icon" onclick="deleteAccount('${acc.productId || acc.product_id}', '${acc._id || acc.id}', '${acc.username}')" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
                 </tr>
             `).join('');
         } else {

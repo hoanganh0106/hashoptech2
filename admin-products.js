@@ -10,7 +10,12 @@ async function loadProductsNew() {
         const response = await fetch(`${API_BASE}/products`);
         const data = await response.json();
 
-        const grid = document.getElementById('productsGrid');
+        const grid = document.getElementById('productsList');
+        
+        if (!grid) {
+            console.error('productsList element not found');
+            return;
+        }
 
         if (data.success && data.products.length > 0) {
             grid.innerHTML = data.products.map(product => {
@@ -18,10 +23,6 @@ async function loadProductsNew() {
                     ? Math.min(...product.variants.map(v => v.price))
                     : product.price;
                 
-                const variantsInfo = product.variants.length > 0
-                    ? `${product.variants.length} gói`
-                    : 'Chưa có gói';
-
                 return `
                     <div class="product-card-admin">
                         ${product.image_url ? `
@@ -34,13 +35,13 @@ async function loadProductsNew() {
                         <p style="color: #666; font-size: 0.9rem;">${product.description}</p>
                         <div class="product-price">Từ ${formatPrice(minPrice)}</div>
                         <div style="font-size: 0.875rem; color: #666; margin: 0.5rem 0;">
-                            ${variantsInfo} | Kho: ${product.stock || 0}
+                            Kho: ${product.stock || 0}
                         </div>
                         <div class="product-actions">
-                            <button class="btn btn-secondary" onclick="editProductNew(${product.id})">
+                            <button class="btn btn-secondary" onclick="editProductNew('${product.id}')">
                                 <i class="fas fa-edit"></i> Sửa
                             </button>
-                            <button class="btn btn-danger" onclick="deleteProductNew(${product.id}, '${product.name}')">
+                            <button class="btn btn-danger" onclick="deleteProductNew('${product.id}', '${product.name}')">
                                 <i class="fas fa-trash"></i> Xóa
                             </button>
                         </div>
@@ -72,14 +73,23 @@ function showAddProductModalNew() {
     
     modalBody.innerHTML = getProductFormHTML();
     
-    document.getElementById('productModal').classList.add('active');
+    // Show modal
+    const modal = document.getElementById('productModal');
+    modal.style.display = 'flex';
+    modal.classList.add('show', 'active');
 }
 
 /**
  * Close product modal
  */
 function closeProductModal() {
-    document.getElementById('productModal').classList.remove('active');
+    const modal = document.getElementById('productModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show', 'active');
+    
+    // Reset form
+    currentProductId = null;
+    productVariants = [];
 }
 
 // Alias for compatibility
@@ -103,20 +113,23 @@ async function editProductNew(id) {
         currentProductId = id;
         const product = data.product;
 
-        // Load variants
-        const variantsResponse = await fetch(`${API_BASE}/products/${id}/stock`, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
-        });
-        
-        // Load variants from product data (đã có trong response)
-        productVariants = product.variants || [];
+        // Load variants from product data and ensure they have description field
+        productVariants = (product.variants || []).map(v => ({
+            ...v,
+            description: v.description || ''
+        }));
 
         const modalBody = document.getElementById('modalBody');
         modalBody.innerHTML = getProductFormHTML(product);
 
-        document.getElementById('productModal').classList.add('active');
+        // Show modal
+        const modal = document.getElementById('productModal');
+        modal.style.display = 'flex';
+        modal.classList.add('show', 'active');
+        
         renderVariants();
     } catch (error) {
+        console.error('Edit product error:', error);
         showNotification('Lỗi tải thông tin sản phẩm', 'error');
     }
 }
@@ -250,6 +263,8 @@ function renderVariants() {
         container.innerHTML = '<p style="color:#666;">Chưa có gói nào. Click "Thêm gói" để tạo.</p>';
         return;
     }
+    
+    console.log('Rendering variants:', productVariants);
 
     container.innerHTML = productVariants.map((v, index) => `
         <div class="variant-item" style="background:#f8f9fa; padding:1rem; border-radius:8px; margin-bottom:1rem;">

@@ -40,7 +40,7 @@
                 <h1><i class="fas fa-tachometer-alt"></i> Admin Panel</h1>
             </div>
             <div class="header-right">
-                <span class="admin-name">Admin</span>
+                <span id="adminUsername" class="admin-name">Admin</span>
                 <button class="btn btn-secondary" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </button>
@@ -130,7 +130,7 @@
             <div id="productsContent" class="content-section">
                 <div class="section-header">
                     <h2><i class="fas fa-box"></i> Quản lý sản phẩm</h2>
-                    <button class="btn btn-primary" onclick="showAddProductModal()">
+                    <button id="btnAddProduct" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Thêm sản phẩm
                     </button>
                 </div>
@@ -256,17 +256,17 @@
     </div>
 
     <!-- Product Modal -->
-    <div id="productModal" class="modal">
+    <div id="productModal" class="modal" onclick="if(event.target.id === 'productModal') { this.style.display='none'; this.classList.remove('show'); }">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeProductModal()">×</span>
+            <span class="close-modal" onclick="document.getElementById('productModal').style.display='none'; document.getElementById('productModal').classList.remove('show'); return false;">×</span>
             <div id="modalBody"></div>
         </div>
     </div>
 
     <!-- Add Account Modal -->
-    <div id="addAccountModal" class="modal">
+    <div id="addAccountModal" class="modal" onclick="if(event.target.id === 'addAccountModal') { this.style.display='none'; this.classList.remove('show'); this.classList.remove('active'); }">
         <div class="modal-content" style="max-width: 700px;">
-            <span class="close-modal" onclick="closeAddAccountModal()">×</span>
+            <span class="close-modal" onclick="var m=document.getElementById('addAccountModal'); m.style.display='none'; m.classList.remove('show'); m.classList.remove('active'); return false;">×</span>
             <div id="addAccountModalBody">
                 <h2><i class="fas fa-plus-circle"></i> Thêm Tài Khoản Vào Kho</h2>
                 <form id="addAccountForm" onsubmit="submitAddAccount(event)">
@@ -294,7 +294,7 @@
                         <button type="submit" class="btn btn-primary" style="flex:1;">
                             <i class="fas fa-save"></i> Lưu tài khoản
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeAddAccountModal()" style="flex:1;">
+                        <button type="button" class="btn btn-secondary" onclick="var m=document.getElementById('addAccountModal'); m.style.display='none'; m.classList.remove('show'); m.classList.remove('active'); document.getElementById('addAccountForm').reset(); return false;" style="flex:1;">
                             <i class="fas fa-times"></i> Hủy
                         </button>
                     </div>
@@ -383,7 +383,7 @@
                     </span>
                 </td>
                 <td>
-                    <button class="btn-icon" onclick="deleteAccount('${acc._id}', '${acc.username}')" title="Xóa">
+                    <button class="btn-icon" onclick="deleteAccount('${acc.productId}', '${acc._id}', '${acc.username}')" title="Xóa">
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
@@ -404,7 +404,9 @@
                 }
             });
         
-        document.getElementById('addAccountModal').style.display = 'block';
+        const modal = document.getElementById('addAccountModal');
+        modal.style.display = 'flex';
+        modal.classList.add('show');
         document.getElementById('addAccountModal').classList.add('active');
     }
 
@@ -456,10 +458,13 @@
             ? product.variants[variantIndex || 0].name 
             : 'default';
         
+        // Backend expects 'accounts' as an array
         const accountData = {
-            username: username,
-            password: password,
-            variantName: variantName
+            variantName: variantName,
+            accounts: [{
+                username: username,
+                password: password
+            }]
         };
         
         fetch(`/api/products/${productId}/stock`, {
@@ -487,10 +492,10 @@
     }
 
     // Delete account
-    function deleteAccount(accountId, username) {
+    function deleteAccount(productId, accountId, username) {
         if (!confirm(`Xóa tài khoản "${username}"?`)) return;
         
-        fetch(`/api/products/accounts/${accountId}`, {
+        fetch(`/api/products/${productId}/accounts/${accountId}`, {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
         })

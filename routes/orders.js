@@ -202,9 +202,19 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id)
-      .populate('items.productId')
-      .lean();
+    // Support both ObjectId and orderCode
+    let order;
+    if (req.params.id.match(/^[0-9a-fA-F]{24}$/)) {
+      // It's an ObjectId
+      order = await Order.findById(req.params.id)
+        .populate('items.productId')
+        .lean();
+    } else {
+      // It's an orderCode
+      order = await Order.findOne({ orderCode: req.params.id })
+        .populate('items.productId')
+        .lean();
+    }
 
     if (!order) {
       return res.status(404).json({ error: 'Không tìm thấy đơn hàng' });
