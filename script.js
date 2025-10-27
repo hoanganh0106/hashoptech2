@@ -78,14 +78,18 @@ function renderProducts() {
                     <h3 class="product-name">${product.name}</h3>
                     ${product.description ? `
                         <div class="product-description">
-                            ${product.description.split('\n').filter(line => line.trim()).length > 0 
-                                ? product.description.split('\n').filter(line => line.trim()).map(line => 
+                            ${(() => {
+                                const lines = product.description.split('\n').filter(line => line.trim()).length > 0 
+                                    ? product.description.split('\n').filter(line => line.trim())
+                                    : product.description.split(',').map(item => item.trim());
+                                
+                                // Trên mobile chỉ hiển thị 2 dòng đầu
+                                const displayLines = window.innerWidth <= 768 ? lines.slice(0, 2) : lines;
+                                
+                                return displayLines.map(line => 
                                     `<div class="description-item">${line.trim()}</div>`
-                                ).join('')
-                                : product.description.split(',').map(item => 
-                                    `<div class="description-item">${item.trim()}</div>`
-                                ).join('')
-                            }
+                                ).join('');
+                            })()}
                         </div>
                     ` : ''}
                     ${product.features && product.features.length > 0 ? `
@@ -95,9 +99,6 @@ function renderProducts() {
                     ` : ''}
                     <div class="product-footer">
                         <div class="product-price">${priceDisplay}</div>
-                        <button class="btn-add-cart" onclick="event.stopPropagation(); event.preventDefault(); showProductDetails('${product.id}');">
-                            <i class="fas fa-shopping-cart"></i> Chọn gói
-                        </button>
                     </div>
                 </div>
             </div>

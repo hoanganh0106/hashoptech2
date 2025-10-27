@@ -224,14 +224,38 @@ function showAddProductForm() {
     }, 100);
 }
 
+// Lưu giá trị hiện tại của các variant inputs
+function saveCurrentProductVariantValues() {
+    const variantInputs = document.querySelectorAll('#variantsListMain .variant-item');
+    variantInputs.forEach((item, index) => {
+        if (productFormVariants[index]) {
+            const nameInput = item.querySelector('.variant-name');
+            const priceInput = item.querySelector('.variant-price');
+            const durationInput = item.querySelector('.variant-duration');
+            const unitSelect = item.querySelector('.variant-unit');
+            const descInput = item.querySelector('.variant-desc');
+
+            if (nameInput) productFormVariants[index].name = nameInput.value;
+            if (priceInput) productFormVariants[index].price = parseFloat(priceInput.value) || 0;
+            if (durationInput) productFormVariants[index].duration_value = parseInt(durationInput.value) || 1;
+            if (unitSelect) productFormVariants[index].duration_unit = unitSelect.value;
+            if (descInput) productFormVariants[index].description = descInput.value;
+        }
+    });
+}
+
 // Add variant (Make global)
 window.addProductVariant = function() {
     console.log('➕ Adding variant...');
+    // Lưu giá trị trước khi thêm variant mới
+    saveCurrentProductVariantValues();
+    
     productFormVariants.push({
         name: '',
         duration_value: 1,
         duration_unit: 'month',
-        price: 0
+        price: 0,
+        description: ''
     });
     renderProductVariants();
 }
@@ -244,6 +268,9 @@ function renderProductVariants() {
     const container = document.getElementById('variantsListMain');
     
     if (!container) return;
+    
+    // Lưu giá trị hiện tại trước khi render
+    saveCurrentProductVariantValues();
     
     if (productFormVariants.length === 0) {
         container.innerHTML = '<p style="color:#666; padding: 1rem; background: #f7fafc; border-radius: 8px;">Chưa có gói. Click "Thêm gói" để tạo.</p>';
