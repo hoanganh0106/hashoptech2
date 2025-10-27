@@ -786,9 +786,14 @@ function getStatusText(status) {
 
 function showError(message) {
     const errorDiv = document.getElementById('loginError');
-    errorDiv.textContent = message;
-    errorDiv.classList.add('show');
-    setTimeout(() => errorDiv.classList.remove('show'), 5000);
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.add('show');
+        setTimeout(() => errorDiv.classList.remove('show'), 5000);
+    } else {
+        // Fallback: use notification system
+        showNotification(message, 'error');
+    }
 }
 
 function showNotification(message, type = 'info') {
