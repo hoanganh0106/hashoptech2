@@ -270,9 +270,9 @@
     </div>
 
     <!-- Product Modal -->
-    <div id="productModal" class="modal" onclick="if(event.target.id === 'productModal') { this.style.display='none'; this.classList.remove('show'); }">
+    <div id="productModal" class="modal" onclick="if(event.target.id === 'productModal') { closeProductModal(); }">
         <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('productModal').style.display='none'; document.getElementById('productModal').classList.remove('show'); return false;">×</span>
+            <span class="close-modal" onclick="closeProductModal(); return false;">×</span>
             <div id="modalBody"></div>
         </div>
     </div>
@@ -292,9 +292,20 @@
                     </div>
                     <div class="form-group" id="variantSelectGroup" style="display: none;">
                         <label>Gói/Option *</label>
-                        <select id="addAccountVariant" class="form-input" required>
+                        <select id="addAccountVariant" class="form-input" required onchange="updateStockTypeForAdd()">
                             <option value="">Chọn gói</option>
                         </select>
+                    </div>
+                    <div class="form-group" id="stockTypeGroup" style="display: none;">
+                        <label>Loại kho *</label>
+                        <select id="addAccountStockType" class="form-input" required>
+                            <option value="available">Có sẵn hàng</option>
+                            <option value="contact">Cần liên hệ</option>
+                        </select>
+                        <small style="color:#666; font-size:0.75rem; display:block; margin-top:0.25rem;">
+                            • Có sẵn hàng: Tự động thêm vào giỏ hàng<br>
+                            • Cần liên hệ: Yêu cầu liên hệ trực tiếp
+                        </small>
                     </div>
                     <div class="form-group">
                         <label>Username *</label>
@@ -430,16 +441,19 @@
         document.getElementById('addAccountModal').classList.remove('active');
         document.getElementById('addAccountForm').reset();
         document.getElementById('variantSelectGroup').style.display = 'none';
+        document.getElementById('stockTypeGroup').style.display = 'none';
     }
 
     // Load variants for selected product
     function loadVariantsForAdd() {
         const productId = document.getElementById('addAccountProduct').value;
         const variantGroup = document.getElementById('variantSelectGroup');
+        const stockTypeGroup = document.getElementById('stockTypeGroup');
         const variantSelect = document.getElementById('addAccountVariant');
         
         if (!productId) {
             variantGroup.style.display = 'none';
+            stockTypeGroup.style.display = 'none';
             return;
         }
         
@@ -450,6 +464,29 @@
             variantGroup.style.display = 'block';
         } else {
             variantGroup.style.display = 'none';
+            stockTypeGroup.style.display = 'none';
+        }
+    }
+
+    // Update stock type when variant is selected
+    function updateStockTypeForAdd() {
+        const productId = document.getElementById('addAccountProduct').value;
+        const variantIndex = document.getElementById('addAccountVariant').value;
+        const stockTypeGroup = document.getElementById('stockTypeGroup');
+        const stockTypeSelect = document.getElementById('addAccountStockType');
+        
+        if (!productId || !variantIndex) {
+            stockTypeGroup.style.display = 'none';
+            return;
+        }
+        
+        const product = allProducts.find(p => p.id === productId);
+        if (product && product.variants && product.variants[variantIndex]) {
+            const variant = product.variants[variantIndex];
+            stockTypeSelect.value = variant.stockType || 'available';
+            stockTypeGroup.style.display = 'block';
+        } else {
+            stockTypeGroup.style.display = 'none';
         }
     }
 
@@ -461,6 +498,7 @@
         const variantIndex = document.getElementById('addAccountVariant').value;
         const username = document.getElementById('addAccountUsername').value;
         const password = document.getElementById('addAccountPassword').value;
+        const stockType = document.getElementById('addAccountStockType').value;
         
         if (!productId || !username || !password) {
             showNotification('Vui lòng điền đầy đủ thông tin', 'error');
@@ -475,6 +513,7 @@
         // Backend expects 'accounts' as an array
         const accountData = {
             variantName: variantName,
+            stockType: stockType,
             accounts: [{
                 username: username,
                 password: password

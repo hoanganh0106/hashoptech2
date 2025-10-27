@@ -76,6 +76,8 @@ function showAddProductModalNew() {
     // Show modal
     const modal = document.getElementById('productModal');
     modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
     modal.classList.add('show', 'active');
 }
 
@@ -85,6 +87,8 @@ function showAddProductModalNew() {
 function closeProductModal() {
     const modal = document.getElementById('productModal');
     modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
     modal.classList.remove('show', 'active');
     
     // Reset form
@@ -125,6 +129,8 @@ async function editProductNew(id) {
         // Show modal
         const modal = document.getElementById('productModal');
         modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
         modal.classList.add('show', 'active');
         
         renderVariants();

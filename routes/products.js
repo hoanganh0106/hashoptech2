@@ -270,7 +270,7 @@ router.get('/:productId/stock', authenticateToken, requireAdmin, async (req, res
 router.post('/:productId/stock', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { productId } = req.params;
-    const { variantName, accounts } = req.body;
+    const { variantName, accounts, stockType } = req.body;
 
     // Validate
     if (!variantName || !accounts || !Array.isArray(accounts) || accounts.length === 0) {
@@ -307,7 +307,8 @@ router.post('/:productId/stock', authenticateToken, requireAdmin, async (req, re
       username: acc.username || acc.account || '',
       password: acc.password || '',
       additionalInfo: acc.additionalInfo || acc.note || '',
-      status: 'available'
+      status: 'available',
+      stockType: stockType || 'available'
     }));
 
     const createdAccounts = await Account.insertMany(accountDocs);
