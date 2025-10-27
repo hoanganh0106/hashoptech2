@@ -240,11 +240,25 @@ async function addToCart(productId, variant = null, event = null) {
     
     // Kiểm tra kho trước khi thêm vào giỏ hàng
     try {
-        const variantIndex = selectedVariant ? product.variants.findIndex(v => v.id === selectedVariant.id) : 0;
+        let variantIndex = 0;
+        if (selectedVariant && product.variants) {
+            // Tìm index của variant được chọn
+            const foundIndex = product.variants.findIndex(v => 
+                (v.id && v.id === selectedVariant.id) || 
+                (v.name && v.name === selectedVariant.name)
+            );
+            if (foundIndex !== -1) {
+                variantIndex = foundIndex;
+            }
+        }
+        
         const stockCheckUrl = `/api/products/${productId}/stock-check?variantIndex=${variantIndex}`;
+        console.log('🔍 Checking stock for:', product.name, 'variant:', variantIndex);
         
         const response = await fetch(stockCheckUrl);
         const stockData = await response.json();
+        
+        console.log('📊 Stock check result:', stockData);
         
         if (!stockData.success) {
             console.error('Stock check failed:', stockData.error);

@@ -407,27 +407,38 @@ router.get('/:productId/stock-check', async (req, res) => {
     const { productId } = req.params;
     const { variantIndex } = req.query;
 
+    console.log('🔍 Stock check request:', { productId, variantIndex });
+
     // Tìm sản phẩm
     const product = await Product.findById(productId);
     if (!product) {
+      console.log('❌ Product not found:', productId);
       return res.status(404).json({
         success: false,
         error: 'Sản phẩm không tồn tại'
       });
     }
 
+    console.log('✅ Product found:', product.name, 'variants:', product.variants.length);
+
     // Kiểm tra variant
     let variant = null;
     if (variantIndex !== undefined) {
       const index = parseInt(variantIndex);
+      console.log('🔍 Looking for variant index:', index);
       if (index >= 0 && index < product.variants.length) {
         variant = product.variants[index];
+        console.log('✅ Variant found:', variant.name);
+      } else {
+        console.log('❌ Invalid variant index:', index, 'max:', product.variants.length - 1);
       }
     } else if (product.variants.length > 0) {
       variant = product.variants[0]; // Mặc định variant đầu tiên
+      console.log('✅ Using default variant:', variant.name);
     }
 
     if (!variant) {
+      console.log('❌ No variant found');
       return res.status(400).json({
         success: false,
         error: 'Không tìm thấy gói sản phẩm'
@@ -440,6 +451,8 @@ router.get('/:productId/stock-check', async (req, res) => {
       variantName: variant.name,
       status: 'available'
     });
+
+    console.log('📊 Stock count for', variant.name, ':', stockCount);
 
     res.json({
       success: true,
