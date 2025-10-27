@@ -479,7 +479,12 @@ function setupEventListeners() {
 
                 showNotification('Đặt hàng thành công! Vui lòng thanh toán để hoàn tất.', 'success');
             } else {
-                showNotification(data.error || 'Lỗi tạo đơn hàng', 'error');
+                // Xử lý lỗi hết hàng
+                if (data.error === 'Sản phẩm hết hàng') {
+                    showOutOfStockModal(data.message, data.outOfStockItems);
+                } else {
+                    showNotification('❌ ' + (data.error || 'Có lỗi xảy ra'), 'error');
+                }
             }
         } catch (error) {
             console.error('Lỗi đặt hàng:', error);
@@ -598,6 +603,81 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+
+// Show out of stock modal
+function showOutOfStockModal(message, outOfStockItems) {
+    const modalBody = document.getElementById('modalBody');
+    
+    let itemsHTML = '';
+    outOfStockItems.forEach(item => {
+        itemsHTML += `
+            <div style="background: #fef3c7; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <h4 style="margin: 0 0 10px 0; color: #92400e;">${item.productName} - ${item.variantName}</h4>
+                <p style="margin: 5px 0; color: #92400e;">
+                    <strong>Cần:</strong> ${item.requested} tài khoản<br>
+                    <strong>Có sẵn:</strong> ${item.available} tài khoản
+                </p>
+            </div>
+        `;
+    });
+
+    modalBody.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 4rem; color: #f59e0b; margin-bottom: 1rem;">
+                ⚠️
+            </div>
+            <h2 style="margin-bottom: 1rem; color: #92400e;">Sản phẩm hết hàng</h2>
+            <p style="margin-bottom: 2rem; color: #666;">
+                Một số sản phẩm trong giỏ hàng hiện tại không có đủ số lượng trong kho.
+            </p>
+        </div>
+
+        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; color: #495057;">📦 Chi tiết sản phẩm hết hàng:</h3>
+            ${itemsHTML}
+        </div>
+
+        <div style="background: #e7f3ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 4px solid #007bff;">
+            <h3 style="margin-bottom: 1rem; color: #004085;">📞 Liên hệ hỗ trợ</h3>
+            <p style="color: #004085; margin-bottom: 15px;">
+                Để được hỗ trợ nhanh nhất, vui lòng liên hệ trực tiếp với chúng tôi:
+            </p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; margin: 20px 0;">
+                <a href="https://t.me/hoanganh1162" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #0088cc; color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
+                    <i class="fab fa-telegram"></i> Telegram
+                </a>
+                <a href="https://facebook.com/HoangAnh.Sw" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #1877f2; color: white; text-decoration: none; border-radius: 25px; font-weight: bold;">
+                    <i class="fab fa-facebook"></i> Facebook
+                </a>
+            </div>
+            
+            <p style="color: #004085; margin-top: 15px; font-size: 0.9em;">
+                <strong>Lưu ý:</strong> Khi liên hệ, vui lòng cung cấp thông tin sản phẩm bạn muốn mua để chúng tôi hỗ trợ bạn nhanh nhất.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button class="btn btn-primary" onclick="closeModal()" style="flex: 1;">
+                <i class="fas fa-check"></i> Đã hiểu
+            </button>
+            <button class="btn btn-secondary" onclick="clearCartAndClose()" style="flex: 1;">
+                <i class="fas fa-trash"></i> Xóa giỏ hàng
+            </button>
+        </div>
+    `;
+
+    document.getElementById('productModal').classList.add('active');
+}
+
+// Clear cart and close modal
+function clearCartAndClose() {
+    cart = [];
+    saveCart();
+    updateCartUI();
+    closeModal();
+    showNotification('Đã xóa giỏ hàng', 'info');
+}
 
 // Check order status and redirect to thank you page
 function checkOrderStatus(orderCode, customerEmail) {

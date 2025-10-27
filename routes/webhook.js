@@ -163,13 +163,24 @@ async function handleSepayWebhook(req, res) {
 
     await telegramService.sendMessage(message);
 
-    // Gửi email cho khách hàng với thông tin tài khoản
+    // Gửi email cho khách hàng
+    console.log('📧 Đang gửi email cho khách hàng...');
+    
     if (deliveredAccounts.length > 0) {
-      console.log('📧 Đang gửi email cho khách hàng...');
+      // Có tài khoản trong kho - gửi thông tin tài khoản
       const emailSent = await emailService.sendAccountInfo(matchedOrder, deliveredAccounts);
       
       if (emailSent) {
-        console.log('✅ Đã gửi email thành công');
+        console.log('✅ Đã gửi email thông tin tài khoản thành công');
+      } else {
+        console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
+      }
+    } else {
+      // Không có tài khoản trong kho - gửi email yêu cầu liên hệ
+      const emailSent = await emailService.sendOutOfStockNotification(matchedOrder);
+      
+      if (emailSent) {
+        console.log('✅ Đã gửi email thông báo hết hàng thành công');
       } else {
         console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
       }
