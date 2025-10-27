@@ -93,6 +93,40 @@ router.post('/email', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/test/database - Test Database connection
+ */
+router.get('/database', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🧪 Admin test Database connection');
+    
+    // Test MongoDB connection bằng cách ping database
+    const mongoose = require('mongoose');
+    
+    if (mongoose.connection.readyState === 1) {
+      // Database đã kết nối, test ping
+      await mongoose.connection.db.admin().ping();
+      
+      res.json({ 
+        success: true, 
+        message: 'MongoDB Atlas kết nối thành công!',
+        database: mongoose.connection.db.databaseName
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        error: 'MongoDB chưa được kết nối' 
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi test Database:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
 
 

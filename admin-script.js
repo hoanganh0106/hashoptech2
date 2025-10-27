@@ -818,6 +818,56 @@ async function handleChangePassword(e) {
     }
 }
 
+// Test Sepay connection
+async function testSepay() {
+    try {
+        showNotification('Đang test kết nối Sepay...', 'info');
+        
+        const response = await fetch(`${API_BASE}/test/sepay`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ Kết nối Sepay thành công!', 'success');
+        } else {
+            showNotification(`❌ Lỗi Sepay: ${data.error || 'Không thể kết nối'}`, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Lỗi kết nối Sepay', 'error');
+    }
+}
+
+// Test Database connection
+async function testDatabase() {
+    try {
+        showNotification('Đang test kết nối Database...', 'info');
+        
+        const response = await fetch(`${API_BASE}/test/database`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ Kết nối Database thành công!', 'success');
+        } else {
+            showNotification(`❌ Lỗi Database: ${data.error || 'Không thể kết nối'}`, 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Lỗi kết nối Database', 'error');
+    }
+}
+
 // Helper Functions
 function formatPrice(price) {
     return new Intl.NumberFormat('vi-VN', {
