@@ -242,6 +242,11 @@ body {
     margin-bottom: 1rem;
 }
 
+.description-item {
+    margin-bottom: 0.25rem;
+    padding-left: 0;
+}
+
 .product-features {
     list-style: none;
     margin-bottom: 1rem;

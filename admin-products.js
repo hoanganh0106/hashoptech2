@@ -159,7 +159,7 @@ function getProductFormHTML(product = null) {
 
             <div class="form-group">
                 <label>Mô tả</label>
-                <textarea id="productDescription" class="form-textarea" rows="3" autocomplete="off" spellcheck="false">${product?.description || ''}</textarea>
+                <textarea id="productDescription" class="form-textarea" rows="3" autocomplete="off" spellcheck="false" placeholder="Mô tả sản phẩm (mỗi dòng 1 mục)&#10;VD:&#10;Tính năng 1&#10;Tính năng 2&#10;Tính năng 3">${product?.description || ''}</textarea>
             </div>
 
             <div class="form-group">
@@ -175,11 +175,6 @@ function getProductFormHTML(product = null) {
                     ${product?.image_url ? `<img src="${product.image_url}" style="max-width:200px; border-radius:8px;">` : ''}
                 </div>
                 <input type="hidden" id="productImageUrl" value="${product?.image_url || ''}">
-            </div>
-
-            <div class="form-group">
-                <label>Tính năng (mỗi dòng 1 tính năng)</label>
-                <textarea id="productFeatures" class="form-textarea" rows="4" placeholder="Tính năng 1&#10;Tính năng 2&#10;Tính năng 3">${product?.features?.join('\n') || ''}</textarea>
             </div>
 
             <hr style="margin: 2rem 0;">
@@ -372,8 +367,7 @@ async function saveProduct(e) {
     const description = document.getElementById('productDescription').value.trim();
     const icon = document.getElementById('productIcon').value.trim();
     const image_url = document.getElementById('productImageUrl').value.trim();
-    const featuresText = document.getElementById('productFeatures').value;
-    const features = featuresText.split('\n').filter(f => f.trim());
+    const features = []; // Không còn tính năng
 
     // Validation
     if (!name || !category) {
@@ -400,7 +394,7 @@ async function saveProduct(e) {
     const productData = {
         name,
         category,
-        description,
+        description: description || '', // Đảm bảo description là string trống nếu không có giá trị
         icon,
         image_url,
         features,

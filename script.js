@@ -76,7 +76,18 @@ function renderProducts() {
                 <div class="product-info">
                     <div class="product-category">${product.category || 'Sản phẩm'}</div>
                     <h3 class="product-name">${product.name}</h3>
-                    <p class="product-description">${product.description || ''}</p>
+                    ${product.description ? `
+                        <div class="product-description">
+                            ${product.description.split('\n').filter(line => line.trim()).length > 0 
+                                ? product.description.split('\n').filter(line => line.trim()).map(line => 
+                                    `<div class="description-item">${line.trim()}</div>`
+                                ).join('')
+                                : product.description.split(',').map(item => 
+                                    `<div class="description-item">${item.trim()}</div>`
+                                ).join('')
+                            }
+                        </div>
+                    ` : ''}
                     ${product.features && product.features.length > 0 ? `
                         <ul class="product-features">
                             ${product.features.slice(0, 2).map(feature => `<li>${feature}</li>`).join('')}
@@ -114,7 +125,18 @@ function showProductDetails(productId) {
                 ${product.category}
             </div>
             <h2 style="color: var(--dark-color); margin-bottom: 1rem;">${product.name}</h2>
-            <p style="color: var(--text-color); font-size: 1.1rem;">${product.description}</p>
+            ${product.description ? `
+                <div style="color: var(--text-color); font-size: 1.1rem;">
+                    ${product.description.split('\n').filter(line => line.trim()).length > 0 
+                        ? product.description.split('\n').filter(line => line.trim()).map(line => 
+                            `<div style="margin-bottom: 0.5rem;">${line.trim()}</div>`
+                        ).join('')
+                        : product.description.split(',').map(item => 
+                            `<div style="margin-bottom: 0.5rem;">${item.trim()}</div>`
+                        ).join('')
+                    }
+                </div>
+            ` : ''}
         </div>
 
         ${hasVariants ? `

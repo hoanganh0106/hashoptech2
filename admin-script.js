@@ -164,17 +164,12 @@ function showAddProductForm() {
 
             <div class="form-group">
                 <label>Mô tả</label>
-                <textarea id="productDescription" class="form-textarea" rows="3"></textarea>
+                <textarea id="productDescription" class="form-textarea" rows="3" placeholder="Mô tả sản phẩm (mỗi dòng 1 mục)&#10;VD:&#10;Tính năng 1&#10;Tính năng 2&#10;Tính năng 3"></textarea>
             </div>
 
             <div class="form-group">
                 <label>Icon/Emoji</label>
                 <input type="text" id="productIcon" class="form-input" placeholder="🎬" style="font-size: 1.5rem;">
-            </div>
-
-            <div class="form-group">
-                <label>Tính năng (mỗi dòng 1 tính năng)</label>
-                <textarea id="productFeatures" class="form-textarea" rows="4" placeholder="Tính năng 1&#10;Tính năng 2&#10;Tính năng 3"></textarea>
             </div>
 
             <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e2e8f0;">
@@ -354,9 +349,9 @@ async function saveProductMain(e) {
     const data = {
         name: document.getElementById('productName').value,
         category: document.getElementById('productCategory').value,
-        description: document.getElementById('productDescription').value,
+        description: document.getElementById('productDescription').value || '', // Đảm bảo description là string trống nếu không có giá trị
         icon: document.getElementById('productIcon').value,
-        features: document.getElementById('productFeatures').value.split('\n').filter(f => f.trim()),
+        features: [], // Không còn tính năng
         variants: productFormVariants,
         status: 'active'
     };
