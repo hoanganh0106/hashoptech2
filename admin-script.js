@@ -44,6 +44,50 @@ function setupEventListeners() {
     setupMobileMenu();
 }
 
+// Setup Mobile Menu Toggle
+function setupMobileMenu() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const sidebar = document.querySelector('.admin-sidebar');
+    
+    if (!toggleBtn || !sidebar) return;
+
+    // Create backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'mobile-backdrop';
+    document.body.appendChild(backdrop);
+
+    // Toggle sidebar
+    toggleBtn.addEventListener('click', () => {
+        console.log('Toggle button clicked');
+        sidebar.classList.toggle('active');
+        backdrop.classList.toggle('show');
+    });
+
+    // Close sidebar when clicking backdrop
+    backdrop.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('show');
+    });
+
+    // Close sidebar when clicking menu items
+    const menuItems = sidebar.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            console.log('Menu item clicked, closing sidebar');
+            sidebar.classList.remove('active');
+            backdrop.classList.remove('show');
+        });
+    });
+
+    // Close sidebar on window resize (if screen becomes larger)
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('active');
+            backdrop.classList.remove('show');
+        }
+    });
+}
+
 // Setup Product Button với event listener
 function setupProductButton() {
     const btn = document.getElementById('btnAddProduct');
@@ -339,11 +383,14 @@ async function saveProductMain(e) {
 // Login
 async function handleLogin(e) {
     e.preventDefault();
+    console.log('Login form submitted');
 
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
+    console.log('Username:', username, 'Password length:', password.length);
 
     try {
+        console.log('Sending login request to:', `${API_BASE}/admin/login`);
         const response = await fetch(`${API_BASE}/admin/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -351,17 +398,21 @@ async function handleLogin(e) {
         });
 
         const data = await response.json();
+        console.log('Login response:', data);
 
         if (data.success) {
             authToken = data.token;
             localStorage.setItem('adminToken', authToken);
             currentUser = data.admin;
+            console.log('Login successful, showing dashboard');
             showDashboard();
             loadDashboardStats();
         } else {
+            console.log('Login failed:', data.error);
             showError(data.error || 'Đăng nhập thất bại');
         }
     } catch (error) {
+        console.error('Login error:', error);
         showError('Không thể kết nối đến server');
     }
 }
@@ -1002,47 +1053,5 @@ function loadProducts() {
     } else {
         originalLoadProducts();
     }
-}
-
-// Mobile menu toggle functionality
-function setupMobileMenu() {
-    const toggleBtn = document.getElementById('mobileMenuToggle');
-    const sidebar = document.querySelector('.admin-sidebar');
-    
-    if (!toggleBtn || !sidebar) return;
-    
-    // Create backdrop element
-    const backdrop = document.createElement('div');
-    backdrop.className = 'mobile-backdrop';
-    document.body.appendChild(backdrop);
-    
-    // Toggle sidebar when hamburger button is clicked
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('mobile-open');
-        backdrop.classList.toggle('show');
-    });
-    
-    // Close sidebar when backdrop is clicked
-    backdrop.addEventListener('click', () => {
-        sidebar.classList.remove('mobile-open');
-        backdrop.classList.remove('show');
-    });
-    
-    // Close sidebar when menu item is clicked (on mobile)
-    const menuItems = sidebar.querySelectorAll('.menu-item');
-    menuItems.forEach(item => {
-        item.addEventListener('click', () => {
-            sidebar.classList.remove('mobile-open');
-            backdrop.classList.remove('show');
-        });
-    });
-    
-    // Close sidebar on window resize if screen becomes larger
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-            sidebar.classList.remove('mobile-open');
-            backdrop.classList.remove('show');
-        }
-    });
 }
 

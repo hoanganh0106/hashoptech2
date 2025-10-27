@@ -28,6 +28,7 @@
                 <button type="submit" class="btn btn-primary btn-block">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </button>
+                <div id="loginError" class="error-message"></div>
             </form>
         </div>
     </div>
@@ -523,6 +524,8 @@
         if (accountsTab) {
             accountsTab.addEventListener('click', loadAllAccounts);
         }
+
+        // Mobile menu toggle is handled in admin-script.js
     });
     </script>
 </body>
