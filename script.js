@@ -694,13 +694,8 @@ function checkOrderStatus(orderCode, customerEmail) {
     // Redirect to thank you page with order info
     const thankYouUrl = `/thank-you?order=${encodeURIComponent(orderCode)}&email=${encodeURIComponent(customerEmail)}`;
     
-    // Show notification
-    showNotification('🎉 Thanh toán thành công! Đang chuyển đến trang cảm ơn...', 'success');
-    
-    // Redirect after 2 seconds
-    setTimeout(() => {
-        window.location.href = thankYouUrl;
-    }, 2000);
+    // Redirect immediately
+    window.location.href = thankYouUrl;
 }
 
 // Function to periodically check order status (optional)
