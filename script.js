@@ -266,9 +266,15 @@ async function addToCart(productId, variant = null, event = null) {
             return;
         }
         
-        if (!stockData.hasStock) {
+        // Handle different stock types
+        if (stockData.stockType === 'contact') {
+            showNotification('📞 Sản phẩm này cần liên hệ trực tiếp để đặt hàng!', 'warning');
+            return;
+        } else if (stockData.stockType === 'available' && !stockData.hasStock) {
             showNotification('⚠️ Sản phẩm đã hết hàng! Vui lòng liên hệ trực tiếp để được hỗ trợ.', 'warning');
             return;
+        } else if (stockData.stockType === 'available' && stockData.hasStock) {
+            console.log('✅ Available product - stock check passed');
         }
         
         console.log('✅ Stock check passed:', stockData.stockCount, 'items available');

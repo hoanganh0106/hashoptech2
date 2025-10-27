@@ -41,7 +41,8 @@ router.get('/', async (req, res) => {
           description: v.description || '',
           price: v.price,
           duration_value: v.duration_value,
-          duration_unit: v.duration_unit
+          duration_unit: v.duration_unit,
+          stockType: v.stockType || 'available'
         })),
         created_at: product.createdAt
       };
@@ -112,7 +113,8 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
-        duration_unit: v.duration_unit || 'month'
+        duration_unit: v.duration_unit || 'month',
+        stockType: v.stockType || 'available'
       }))
     });
 
@@ -158,7 +160,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
-        duration_unit: v.duration_unit || 'month'
+        duration_unit: v.duration_unit || 'month',
+        stockType: v.stockType || 'available'
       }));
     }
 
@@ -445,21 +448,36 @@ router.get('/:productId/stock-check', async (req, res) => {
       });
     }
 
-    // Đếm số tài khoản có sẵn cho variant này
-    const stockCount = await Account.countDocuments({
-      productId: productId,
-      variantName: variant.name,
-      status: 'available'
-    });
+    const stockType = variant.stockType || 'available';
+    
+    let stockCount = 0;
+    let hasStock = false;
+    let message = '';
 
-    console.log('📊 Stock count for', variant.name, ':', stockCount);
+    if (stockType === 'available') {
+      stockCount = await Account.countDocuments({
+        productId: productId,
+        variantName: variant.name,
+        status: 'available'
+      });
+      hasStock = stockCount > 0;
+      message = hasStock ? 'Có sẵn hàng' : 'Hết hàng';
+    } else if (stockType === 'contact') {
+      hasStock = false;
+      stockCount = 0;
+      message = 'Cần liên hệ';
+    }
+
+    console.log('📊 Stock check for', variant.name, ':', { stockType, stockCount, hasStock, message });
 
     res.json({
       success: true,
       productId: productId,
       variantName: variant.name,
+      stockType: stockType,
       stockCount: stockCount,
-      hasStock: stockCount > 0
+      hasStock: hasStock,
+      message: message
     });
 
   } catch (error) {

@@ -246,7 +246,8 @@ function addVariant() {
         duration_value: 1,
         duration_unit: 'month',
         price: 0,
-        description: ''
+        description: '',
+        stockType: 'available'
     };
 
     productVariants.push(variant);
@@ -305,6 +306,18 @@ function renderVariants() {
                 <label style="font-size:0.875rem; font-weight:600;">Mô tả gói</label>
                 <input type="text" class="form-input variant-desc" data-index="${index}" value="${v.description || ''}" placeholder="VD: Tài khoản Premium 1 tháng" autocomplete="off" spellcheck="false">
             </div>
+
+            <div style="margin-top:1rem;">
+                <label style="font-size:0.875rem; font-weight:600;">Loại kho *</label>
+                <select class="form-input variant-stock-type" data-index="${index}" required>
+                    <option value="available" ${v.stockType === 'available' ? 'selected' : ''}>Có sẵn hàng</option>
+                    <option value="contact" ${v.stockType === 'contact' ? 'selected' : ''}>Cần liên hệ</option>
+                </select>
+                <small style="color:#666; font-size:0.75rem; display:block; margin-top:0.25rem;">
+                    • Có sẵn hàng: Tự động thêm vào giỏ hàng<br>
+                    • Cần liên hệ: Yêu cầu liên hệ trực tiếp
+                </small>
+            </div>
         </div>
     `).join('');
 }
@@ -318,6 +331,7 @@ function updateVariantsFromForm() {
     const variantDurations = document.querySelectorAll('.variant-duration');
     const variantUnits = document.querySelectorAll('.variant-unit');
     const variantDescs = document.querySelectorAll('.variant-desc');
+    const variantStockTypes = document.querySelectorAll('.variant-stock-type');
 
     variantNames.forEach((input, idx) => {
         if (productVariants[idx]) {
@@ -326,6 +340,7 @@ function updateVariantsFromForm() {
             productVariants[idx].duration_value = parseInt(variantDurations[idx].value) || 1;
             productVariants[idx].duration_unit = variantUnits[idx].value;
             productVariants[idx].description = variantDescs[idx].value;
+            productVariants[idx].stockType = variantStockTypes[idx].value;
         }
     });
 }

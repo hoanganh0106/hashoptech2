@@ -23,6 +23,11 @@ const productVariantSchema = new mongoose.Schema({
     type: String,
     enum: ['day', 'month', 'year'],
     default: 'month'
+  },
+  stockType: {
+    type: String,
+    enum: ['available', 'contact'],
+    default: 'available'
   }
 });
 
