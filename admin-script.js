@@ -5,6 +5,14 @@ let currentUser = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Clear old cache data if needed
+    if (localStorage.getItem('clearCache') === 'true') {
+        localStorage.clear();
+        sessionStorage.clear();
+        localStorage.removeItem('clearCache');
+        console.log('Cache cleared');
+    }
+
     if (authToken) {
         verifyToken();
     } else {
@@ -447,13 +455,22 @@ function handleLogout(e) {
     showLoginPage();
 }
 
+// Clear Cache
+function clearCache() {
+    if (confirm('Bạn có chắc muốn xóa cache và reload trang?')) {
+        localStorage.setItem('clearCache', 'true');
+        window.location.reload(true);
+    }
+}
+
 // Logout
 function logout() {
+    localStorage.removeItem('adminToken');
     authToken = null;
     currentUser = null;
-    localStorage.removeItem('adminToken');
     showLoginPage();
 }
+
 
 // Show pages
 function showLoginPage() {
@@ -515,6 +532,7 @@ function navigateToPage(page) {
             setupProductButton(); // Setup button khi vào tab products
             break;
         case 'accounts':
+            document.getElementById('accountsContent').style.display = 'block';
             loadProductsForFilter();
             break;
     }

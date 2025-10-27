@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Admin Panel - HaShopTech</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="admin-style.css?v=20241227">
 </head>
 <body>
     <!-- Login Page -->
@@ -45,6 +48,9 @@
             </div>
             <div class="header-right">
                 <span id="adminUsername" class="admin-name">Admin</span>
+                <button class="btn btn-warning" onclick="clearCache()" title="Xóa cache">
+                    <i class="fas fa-refresh"></i>
+                </button>
                 <button class="btn btn-secondary" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </button>
@@ -309,8 +315,8 @@
     <!-- Notification Container -->
     <div id="notificationContainer" class="notification-container"></div>
 
-    <script src="admin-script.js"></script>
-    <script src="admin-products.js"></script>
+    <script src="admin-script.js?v=20241227"></script>
+    <script src="admin-products.js?v=20241227"></script>
     <script>
     // QUẢN LÝ KHO TÀI KHOẢN - SIÊU ĐƠN GIẢN
     let currentAccounts = [];
