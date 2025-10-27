@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const config = require('../config');
 const telegramService = require('../services/telegram');
+const emailService = require('../services/email');
 
 // Import Models
 const Order = require('../models/Order');
@@ -162,13 +163,25 @@ async function handleSepayWebhook(req, res) {
 
     await telegramService.sendMessage(message);
 
-    // TODO: Gửi email cho khách hàng với thông tin tài khoản
+    // Gửi email cho khách hàng với thông tin tài khoản
+    if (deliveredAccounts.length > 0) {
+      console.log('📧 Đang gửi email cho khách hàng...');
+      const emailSent = await emailService.sendAccountInfo(matchedOrder, deliveredAccounts);
+      
+      if (emailSent) {
+        console.log('✅ Đã gửi email thành công');
+      } else {
+        console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
+      }
+    }
 
     res.json({ 
       success: true, 
       message: 'Đã xử lý thanh toán',
       orderCode: matchedOrder.orderCode,
-      delivered: deliveredAccounts.length > 0
+      delivered: deliveredAccounts.length > 0,
+      customerEmail: matchedOrder.customerEmail,
+      emailSent: deliveredAccounts.length > 0
     });
 
   } catch (error) {

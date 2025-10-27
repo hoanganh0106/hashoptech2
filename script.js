@@ -381,8 +381,17 @@ function showPaymentInfo(order, payment) {
                 <ul style="color: #92400e; margin-left: 1.5rem; font-size: 0.9rem;">
                     <li style="margin-bottom: 0.25rem;">Chuyển khoản ĐÚNG số tiền và nội dung</li>
                     <li style="margin-bottom: 0.25rem;">Đơn hàng tự động xử lý sau khi thanh toán</li>
+                    <li style="margin-bottom: 0.25rem;">Thông tin tài khoản sẽ được gửi qua EMAIL</li>
                     <li style="margin-bottom: 0.25rem;">Liên hệ hỗ trợ nếu có vấn đề</li>
                 </ul>
+            </div>
+
+            <div style="background: #e7f3ff; padding: 1rem; border-radius: 8px; border-left: 4px solid #007bff; margin-top: 1rem;">
+                <h4 style="color: #004085; margin-bottom: 0.5rem;">📧 Thông tin tài khoản:</h4>
+                <p style="color: #004085; margin: 0; font-size: 0.9rem;">
+                    Sau khi thanh toán thành công, thông tin tài khoản sẽ được gửi qua email. 
+                    Vui lòng kiểm tra hộp thư và thư mục Spam.
+                </p>
             </div>
         </div>
 
@@ -392,6 +401,10 @@ function showPaymentInfo(order, payment) {
     `;
 
     document.getElementById('productModal').classList.add('active');
+    
+    // Start checking order status
+    const customerEmail = document.getElementById('customerEmail').value;
+    startOrderStatusCheck(order.order_code, customerEmail);
 }
 
 // Setup Event Listeners
@@ -585,6 +598,47 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+
+// Check order status and redirect to thank you page
+function checkOrderStatus(orderCode, customerEmail) {
+    // Redirect to thank you page with order info
+    const thankYouUrl = `/thank-you?order=${encodeURIComponent(orderCode)}&email=${encodeURIComponent(customerEmail)}`;
+    
+    // Show notification
+    showNotification('🎉 Thanh toán thành công! Đang chuyển đến trang cảm ơn...', 'success');
+    
+    // Redirect after 2 seconds
+    setTimeout(() => {
+        window.location.href = thankYouUrl;
+    }, 2000);
+}
+
+// Function to periodically check order status (optional)
+function startOrderStatusCheck(orderCode, customerEmail) {
+    let checkCount = 0;
+    const maxChecks = 30; // Check for 5 minutes (30 * 10 seconds)
+    
+    const checkInterval = setInterval(async () => {
+        checkCount++;
+        
+        try {
+            const response = await fetch(`/api/orders/${orderCode}/status`);
+            const data = await response.json();
+            
+            if (data.success && data.order.paymentStatus === 'paid') {
+                clearInterval(checkInterval);
+                checkOrderStatus(orderCode, customerEmail);
+            }
+        } catch (error) {
+            console.log('Checking order status...', checkCount);
+        }
+        
+        if (checkCount >= maxChecks) {
+            clearInterval(checkInterval);
+            console.log('Order status check timeout');
+        }
+    }, 10000); // Check every 10 seconds
+}
 
 // Toggle Floating Contact Bubble
 function toggleContact() {

@@ -825,11 +825,11 @@ async function testTelegram() {
     }
 }
 
-async function testSepay() {
+async function testEmail() {
     try {
-        showNotification('Đang test Sepay...', 'info');
+        showNotification('Đang test Email...', 'info');
         
-        const response = await fetch(`${API_BASE}/test/sepay`, {
+        const response = await fetch(`${API_BASE}/test/email`, {
             method: 'POST',
             headers: { 
                 'Authorization': `Bearer ${authToken}`,
@@ -840,13 +840,13 @@ async function testSepay() {
         const data = await response.json();
 
         if (data.success) {
-            showNotification('✅ Sepay API hoạt động! ' + (data.message || ''), 'success');
+            showNotification('✅ Email service hoạt động! ' + (data.message || ''), 'success');
         } else {
-            showNotification('❌ Lỗi: ' + (data.error || 'Không kết nối được'), 'error');
+            showNotification('❌ Lỗi: ' + (data.error || 'Email chưa được cấu hình'), 'error');
         }
     } catch (error) {
-        showNotification('❌ Không thể kết nối Sepay', 'error');
-        console.error('Test Sepay error:', error);
+        showNotification('❌ Không thể kết nối Email service', 'error');
+        console.error('Test Email error:', error);
     }
 }
 

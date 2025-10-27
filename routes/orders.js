@@ -297,4 +297,44 @@ router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/orders/:orderCode/status - Kiểm tra trạng thái đơn hàng
+ */
+router.get('/:orderCode/status', async (req, res) => {
+  try {
+    const { orderCode } = req.params;
+
+    const order = await Order.findOne({ orderCode });
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        error: 'Không tìm thấy đơn hàng'
+      });
+    }
+
+    res.json({
+      success: true,
+      order: {
+        orderCode: order.orderCode,
+        paymentStatus: order.paymentStatus,
+        deliveryStatus: order.deliveryStatus,
+        totalAmount: order.totalAmount,
+        customerName: order.customerName,
+        customerEmail: order.customerEmail,
+        createdAt: order.createdAt,
+        paidAt: order.paidAt,
+        deliveredAt: order.deliveredAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Lỗi kiểm tra trạng thái đơn hàng:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi server'
+    });
+  }
+});
+
 module.exports = router;

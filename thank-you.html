@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cảm ơn bạn đã mua hàng - HaShopTech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .thank-you-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 2.5em;
+        }
+
+        .order-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 5px solid #28a745;
+        }
+
+        .order-code {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .email-notice {
+            background: #e7f3ff;
+            border: 2px solid #b8daff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .email-notice h3 {
+            color: #004085;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .email-notice p {
+            color: #004085;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .email-highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #856404;
+        }
+
+        .contact-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .contact-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .contact-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .contact-link:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+        }
+
+        .contact-link.telegram {
+            background: #0088cc;
+        }
+
+        .contact-link.telegram:hover {
+            background: #006699;
+        }
+
+        .contact-link.facebook {
+            background: #1877f2;
+        }
+
+        .contact-link.facebook:hover {
+            background: #166fe5;
+        }
+
+        .btn-home {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .steps {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .thank-you-container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .contact-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .contact-link {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="thank-you-container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <h1>Cảm ơn bạn!</h1>
+        <p style="color: #666; font-size: 1.2em; margin-bottom: 25px;">
+            Thanh toán của bạn đã được xác nhận thành công
+        </p>
+
+        <div class="order-info">
+            <div class="order-code" id="orderCode">Đang tải...</div>
+            <p style="color: #666;">Mã đơn hàng của bạn</p>
+        </div>
+
+        <div class="email-notice">
+            <h3>
+                <i class="fas fa-envelope"></i>
+                Thông tin tài khoản đã được gửi qua email
+            </h3>
+            
+            <div class="email-highlight" id="emailAddress">
+                <i class="fas fa-info-circle"></i>
+                Đang tải thông tin email...
+            </div>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div>Kiểm tra hộp thư email của bạn</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div>Tìm email từ <strong>HaShopTech</strong> với tiêu đề chứa mã đơn hàng</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div>Mở email để xem thông tin tài khoản chi tiết</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div>Lưu lại thông tin tài khoản và đổi mật khẩu ngay</div>
+                </div>
+            </div>
+
+            <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                <i class="fas fa-clock"></i>
+                Email có thể mất vài phút để được gửi. Nếu không thấy email trong 10 phút, 
+                vui lòng kiểm tra thư mục <strong>Spam</strong> hoặc liên hệ hỗ trợ.
+            </p>
+        </div>
+
+        <div class="contact-info">
+            <h3 style="color: #333; margin-bottom: 15px;">
+                <i class="fas fa-headset"></i>
+                Cần hỗ trợ?
+            </h3>
+            <p style="color: #666; margin-bottom: 15px;">
+                Nếu bạn gặp bất kỳ vấn đề nào, đừng ngần ngại liên hệ với chúng tôi
+            </p>
+            
+            <div class="contact-links">
+                <a href="https://t.me/hoanganh1162" class="contact-link telegram" target="_blank">
+                    <i class="fab fa-telegram"></i>
+                    Telegram
+                </a>
+                <a href="https://facebook.com/HoangAnh.Sw" class="contact-link facebook" target="_blank">
+                    <i class="fab fa-facebook"></i>
+                    Facebook
+                </a>
+            </div>
+        </div>
+
+        <a href="/" class="btn-home">
+            <i class="fas fa-home"></i>
+            Về trang chủ
+        </a>
+    </div>
+
+    <script>
+        // Lấy thông tin từ URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderCode = urlParams.get('order');
+        const email = urlParams.get('email');
+
+        // Hiển thị thông tin
+        if (orderCode) {
+            document.getElementById('orderCode').textContent = orderCode;
+        }
+
+        if (email) {
+            document.getElementById('emailAddress').innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                Email: <strong>${email}</strong>
+            `;
+        }
+
+        // Auto redirect về trang chủ sau 30 giây
+        setTimeout(() => {
+            if (confirm('Bạn có muốn quay về trang chủ không?')) {
+                window.location.href = '/';
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

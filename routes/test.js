@@ -4,6 +4,7 @@ const router = express.Router();
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const telegramService = require('../services/telegram');
 const sepayService = require('../services/sepay');
+const emailService = require('../services/email');
 
 /**
  * POST /api/test/telegram - Test Telegram connection
@@ -56,6 +57,35 @@ router.post('/sepay', authenticateToken, requireAdmin, async (req, res) => {
     }
   } catch (error) {
     console.error('Lỗi test Sepay:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
+/**
+ * POST /api/test/email - Test Email connection
+ */
+router.post('/email', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    console.log('🧪 Admin test Email connection');
+    
+    const result = await emailService.testConnection();
+    
+    if (result) {
+      res.json({ 
+        success: true, 
+        message: 'Email service hoạt động bình thường!' 
+      });
+    } else {
+      res.json({ 
+        success: false, 
+        error: 'Email service chưa được cấu hình hoặc có lỗi' 
+      });
+    }
+  } catch (error) {
+    console.error('Lỗi test Email:', error);
     res.status(500).json({ 
       success: false, 
       error: error.message 

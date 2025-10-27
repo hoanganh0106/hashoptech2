@@ -73,6 +73,10 @@ app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+app.get('/thank-you', (req, res) => {
+  res.sendFile(path.join(__dirname, 'thank-you.html'));
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);

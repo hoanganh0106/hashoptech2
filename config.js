@@ -46,6 +46,15 @@ module.exports = {
   },
 
   // Frontend URL (để CORS)
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001'
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3001',
+
+  // Site Information
+  siteName: 'HaShopTech',
+
+  // Email Configuration
+  email: {
+    username: process.env.EMAIL_USERNAME,
+    password: process.env.EMAIL_PASSWORD
+  }
 };
 
