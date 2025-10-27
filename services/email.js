@@ -10,7 +10,7 @@ class EmailService {
 
   setupTransporter() {
     // Sử dụng Gmail SMTP (có thể thay đổi provider khác)
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: config.email?.username || process.env.EMAIL_USERNAME,
