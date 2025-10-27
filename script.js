@@ -207,14 +207,14 @@ function selectVariant(productId, variantIndex) {
 }
 
 // Add to cart from modal (with selected variant)
-function addToCartFromModal(productId) {
+async function addToCartFromModal(productId) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
 
     const hasVariants = product.variants && product.variants.length > 0;
     const variant = hasVariants ? product.variants[selectedVariantIndex] : null;
 
-    addToCart(productId, variant);
+    await addToCart(productId, variant);
 }
 
 // Close Modal
@@ -223,7 +223,7 @@ function closeModal() {
 }
 
 // Add to Cart (hỗ trợ variants)
-function addToCart(productId, variant = null, event = null) {
+async function addToCart(productId, variant = null, event = null) {
     if (event) {
         event.stopPropagation();
         event.preventDefault();
@@ -237,6 +237,33 @@ function addToCart(productId, variant = null, event = null) {
 
     // Tự động chọn variant đầu tiên nếu sản phẩm có variants
     const selectedVariant = variant || (product.variants && product.variants.length > 0 ? product.variants[0] : null);
+    
+    // Kiểm tra kho trước khi thêm vào giỏ hàng
+    try {
+        const variantIndex = selectedVariant ? product.variants.findIndex(v => v.id === selectedVariant.id) : 0;
+        const stockCheckUrl = `/api/products/${productId}/stock-check?variantIndex=${variantIndex}`;
+        
+        const response = await fetch(stockCheckUrl);
+        const stockData = await response.json();
+        
+        if (!stockData.success) {
+            console.error('Stock check failed:', stockData.error);
+            showNotification('Lỗi kiểm tra kho sản phẩm', 'error');
+            return;
+        }
+        
+        if (!stockData.hasStock) {
+            showNotification('⚠️ Sản phẩm đã hết hàng! Vui lòng liên hệ trực tiếp để được hỗ trợ.', 'warning');
+            return;
+        }
+        
+        console.log('✅ Stock check passed:', stockData.stockCount, 'items available');
+        
+    } catch (error) {
+        console.error('Stock check error:', error);
+        showNotification('Lỗi kiểm tra kho sản phẩm', 'error');
+        return;
+    }
     
     // Tạo unique key cho cart item (product + variant)
     const cartItemKey = selectedVariant 

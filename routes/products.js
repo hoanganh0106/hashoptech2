@@ -399,4 +399,63 @@ router.delete('/:productId/accounts/:accountId', authenticateToken, requireAdmin
   }
 });
 
+/**
+ * GET /api/products/:productId/stock-check - Kiểm tra kho sản phẩm
+ */
+router.get('/:productId/stock-check', async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { variantIndex } = req.query;
+
+    // Tìm sản phẩm
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        error: 'Sản phẩm không tồn tại'
+      });
+    }
+
+    // Kiểm tra variant
+    let variant = null;
+    if (variantIndex !== undefined) {
+      const index = parseInt(variantIndex);
+      if (index >= 0 && index < product.variants.length) {
+        variant = product.variants[index];
+      }
+    } else if (product.variants.length > 0) {
+      variant = product.variants[0]; // Mặc định variant đầu tiên
+    }
+
+    if (!variant) {
+      return res.status(400).json({
+        success: false,
+        error: 'Không tìm thấy gói sản phẩm'
+      });
+    }
+
+    // Đếm số tài khoản có sẵn cho variant này
+    const stockCount = await Account.countDocuments({
+      productId: productId,
+      variantName: variant.name,
+      status: 'available'
+    });
+
+    res.json({
+      success: true,
+      productId: productId,
+      variantName: variant.name,
+      stockCount: stockCount,
+      hasStock: stockCount > 0
+    });
+
+  } catch (error) {
+    console.error('Stock check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Lỗi kiểm tra kho'
+    });
+  }
+});
+
 module.exports = router;
