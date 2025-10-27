@@ -18,244 +18,210 @@
             </div>
             <form id="loginForm">
                 <div class="form-group">
-                    <label><i class="fas fa-user"></i> Tên đăng nhập</label>
+                    <label for="loginUsername">Tên đăng nhập</label>
                     <input type="text" id="loginUsername" required>
                 </div>
                 <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Mật khẩu</label>
+                    <label for="loginPassword">Mật khẩu</label>
                     <input type="password" id="loginPassword" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </button>
             </form>
-            <div id="loginError" class="error-message"></div>
         </div>
     </div>
 
-    <!-- Dashboard Page -->
-    <div id="dashboardPage" class="dashboard-page" style="display: none;">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-user-shield"></i>
-                <span>Admin Panel</span>
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <h1><i class="fas fa-tachometer-alt"></i> Admin Panel</h1>
             </div>
-            <nav class="sidebar-menu">
-                <a href="#" class="menu-item active" data-page="dashboard">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#" class="menu-item" data-page="orders">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Đơn hàng</span>
-                </a>
-                <a href="#" class="menu-item" data-page="products">
-                    <i class="fas fa-box"></i>
-                    <span>Sản phẩm</span>
-                </a>
-                <a href="#" class="menu-item" data-page="accounts">
-                    <i class="fas fa-key"></i>
-                    <span>Kho tài khoản</span>
-                </a>
-                <a href="#" class="menu-item" data-page="settings">
-                    <i class="fas fa-cog"></i>
-                    <span>Cài đặt</span>
-                </a>
-                <a href="#" class="menu-item" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Đăng xuất</span>
-                </a>
-            </nav>
-        </aside>
+            <div class="header-right">
+                <span class="admin-name">Admin</span>
+                <button class="btn btn-secondary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Tổng quan
+                </li>
+                <li class="menu-item" data-page="products">
+                    <i class="fas fa-box"></i> Sản phẩm
+                </li>
+                <li class="menu-item" data-page="orders">
+                    <i class="fas fa-shopping-cart"></i> Đơn hàng
+                </li>
+                <li class="menu-item" data-page="accounts">
+                    <i class="fas fa-database"></i> Kho tài khoản
+                </li>
+                <li class="menu-item" data-page="settings">
+                    <i class="fas fa-cog"></i> Cài đặt
+                </li>
+            </ul>
+        </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="content-header">
-                <h2 id="pageTitle">Dashboard</h2>
-                <div class="header-actions">
-                    <span class="admin-name">
-                        <i class="fas fa-user-circle"></i>
-                        <span id="adminUsername">Admin</span>
-                    </span>
-                </div>
-            </header>
-
+        <main class="admin-content">
             <!-- Dashboard Content -->
-            <div id="dashboardContent" class="content-section">
+            <div id="dashboardContent" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Tổng quan hệ thống</h2>
+                </div>
+                
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="statTotalOrders">0</h3>
-                            <p>Tổng đơn hàng</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="statPendingOrders">0</h3>
-                            <p>Chờ thanh toán</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="statPaidOrders">0</h3>
-                            <p>Đã thanh toán</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="statRevenue">0đ</h3>
-                            <p>Doanh thu</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <div class="stat-icon">
                             <i class="fas fa-box"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 id="statProducts">0</h3>
-                            <p>Sản phẩm</p>
+                            <h3 id="totalProducts">0</h3>
+                            <p>Tổng sản phẩm</p>
                         </div>
                     </div>
+                    
                     <div class="stat-card">
-                        <div class="stat-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
-                            <i class="fas fa-key"></i>
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
                         </div>
                         <div class="stat-info">
-                            <h3 id="statAccounts">0</h3>
+                            <h3 id="totalOrders">0</h3>
+                            <p>Tổng đơn hàng</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalRevenue">0đ</h3>
+                            <p>Doanh thu</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalAccounts">0</h3>
                             <p>Tài khoản trong kho</p>
                         </div>
                     </div>
                 </div>
+
+                <div class="recent-orders">
+                    <h3><i class="fas fa-clock"></i> Đơn hàng gần đây</h3>
+                    <div id="recentOrdersList" class="orders-list">
+                        <!-- Orders will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Content -->
+            <div id="productsContent" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-box"></i> Quản lý sản phẩm</h2>
+                    <button class="btn btn-primary" onclick="showAddProductModal()">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm
+                    </button>
+                </div>
+                
+                <div id="productsList" class="products-grid">
+                    <!-- Products will be loaded here -->
+                </div>
             </div>
 
             <!-- Orders Content -->
-            <div id="ordersContent" class="content-section" style="display: none;">
-                <div class="filter-bar">
-                    <select id="orderStatusFilter" class="filter-select">
-                        <option value="">Tất cả đơn hàng</option>
-                        <option value="pending">Chờ thanh toán</option>
-                        <option value="paid">Đã thanh toán</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="loadOrders()">
-                        <i class="fas fa-sync"></i> Làm mới
-                    </button>
+            <div id="ordersContent" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Quản lý đơn hàng</h2>
                 </div>
-                <div class="table-container">
-                    <table class="data-table">
+                
+                <div class="orders-table-container">
+                    <table class="orders-table">
                         <thead>
                             <tr>
                                 <th>Mã đơn</th>
                                 <th>Khách hàng</th>
-                                <th>Email</th>
-                                <th>Số tiền</th>
-                                <th>Thanh toán</th>
-                                <th>Giao hàng</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
+                                <th>Sản phẩm</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thời gian</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTableBody">
-                            <tr>
-                                <td colspan="8" class="text-center">Đang tải...</td>
-                            </tr>
+                            <!-- Orders will be loaded here -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Products Content -->
-            <div id="productsContent" class="content-section" style="display: none;">
-                <div class="filter-bar">
-                    <button class="btn btn-primary" id="btnAddProduct">
-                        <i class="fas fa-plus"></i> Thêm sản phẩm
+            <!-- Accounts Content -->
+            <div id="accountsContent" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-database"></i> Kho tài khoản</h2>
+                    <button class="btn btn-primary" onclick="openAddAccountModal()">
+                        <i class="fas fa-plus"></i> Thêm tài khoản
                     </button>
                 </div>
-                <div class="products-grid" id="productsGrid">
-                    <!-- Products will be loaded here -->
+                
+                <div class="stat-cards-row">
+                    <div class="stat-card-mini">
+                        <div class="stat-icon-mini">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info-mini">
+                            <h4 id="totalStockProducts">0</h4>
+                            <p>Sản phẩm có kho</p>
+                        </div>
+                    </div>
+                    <div class="stat-card-mini">
+                        <div class="stat-icon-mini">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-info-mini">
+                            <h4 id="totalStockAccounts">0</h4>
+                            <p>Tổng tài khoản</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Accounts Content - TẠO MỚI HOÀN TOÀN -->
-            <div id="accountsContent" class="content-section" style="display: none;">
-                <div style="background: white; padding: 2rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-box"></i> Quản Lý Kho Tài Khoản</h2>
-                    
-                    <!-- Actions -->
-                    <div style="margin-bottom: 1.5rem;">
-                        <button class="btn btn-primary" onclick="openAddAccountModal()" type="button">
-                            <i class="fas fa-plus"></i> Thêm tài khoản
-                        </button>
-                        <button class="btn btn-secondary" onclick="loadAllAccounts()" type="button" style="margin-left: 0.5rem;">
-                            <i class="fas fa-sync"></i> Làm mới
-                        </button>
-                    </div>
-
-                    <!-- Accounts Table -->
-                    <div style="overflow-x: auto;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr style="background: #f8fafc;">
-                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0;">STT</th>
-                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Username</th>
-                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Password</th>
-                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Trạng thái</th>
-                                    <th style="padding: 1rem; text-align: left; border-bottom: 2px solid #e2e8f0;">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody id="accountsTableBody">
-                                <tr>
-                                    <td colspan="5" style="padding: 2rem; text-align: center; color: #999;">Đang tải...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                
+                <div class="accounts-table-container">
+                    <table class="accounts-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Gói/Option</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Trạng thái</th>
+                                <th>Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody">
+                            <!-- Accounts will be loaded here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Settings Content -->
-            <div id="settingsContent" class="content-section" style="display: none;">
-                <div class="settings-container">
-                    <div class="settings-card">
-                        <h3><i class="fas fa-lock"></i> Đổi mật khẩu</h3>
-                        <form id="changePasswordForm">
-                            <div class="form-group">
-                                <label>Mật khẩu cũ</label>
-                                <input type="password" id="oldPassword" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Mật khẩu mới</label>
-                                <input type="password" id="newPassword" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Xác nhận mật khẩu mới</label>
-                                <input type="password" id="confirmPassword" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Đổi mật khẩu
-                            </button>
-                        </form>
-                    </div>
-                    <div class="settings-card">
-                        <h3><i class="fab fa-telegram"></i> Cấu hình Telegram</h3>
-                        <p>Bot Token và Chat ID được cấu hình trong file <code>config.js</code></p>
-                        <button class="btn btn-secondary" onclick="testTelegram()">
-                            <i class="fas fa-test"></i> Test kết nối
-                        </button>
-                    </div>
+            <div id="settingsContent" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cog"></i> Cài đặt hệ thống</h2>
+                </div>
+                
+                <div class="settings-grid">
                     <div class="settings-card">
                         <h3><i class="fas fa-credit-card"></i> Cấu hình Sepay</h3>
                         <p>API Key và thông tin ngân hàng được cấu hình trong file <code>config.js</code></p>
@@ -268,63 +234,77 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-paper-plane"></i> Cấu hình Telegram</h3>
+                        <p>Bot Token và Chat ID được cấu hình trong file <code>config.js</code></p>
+                        <button class="btn btn-secondary" onclick="testTelegram()">
+                            <i class="fas fa-test"></i> Test Telegram
+                        </button>
+                    </div>
+                    
+                    <div class="settings-card">
+                        <h3><i class="fas fa-database"></i> Cấu hình Database</h3>
+                        <p>MongoDB Atlas connection string được cấu hình trong file <code>config.js</code></p>
+                        <button class="btn btn-secondary" onclick="testDatabase()">
+                            <i class="fas fa-test"></i> Test Database
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Order Detail Modal -->
-    <div id="orderModal" class="modal">
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeOrderModal()">&times;</span>
-            <div id="orderModalBody"></div>
-        </div>
-    </div>
-
-    <!-- Product Modal (for add/edit product) -->
-    <div id="productModal" class="modal" onclick="if(event.target === this) { this.style.display='none'; this.classList.remove('show'); }">
-        <div class="modal-content">
-            <span class="close-modal" id="closeModalBtn" onclick="document.getElementById('productModal').style.display='none'; document.getElementById('productModal').classList.remove('show'); return false;">&times;</span>
+            <span class="close-modal" onclick="closeProductModal()">×</span>
             <div id="modalBody"></div>
         </div>
     </div>
 
-    <!-- Add Account Modal - MỚI HOÀN TOÀN -->
-    <div id="addAccountModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
-            <button onclick="closeAddAccountModal()" style="position: absolute; right: 1rem; top: 1rem; background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; color: #666;">×</button>
-            
-            <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-plus-circle"></i> Thêm Tài Khoản</h2>
-            
-            <form id="addAccountForm" onsubmit="submitAddAccount(event)">
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Sản phẩm *</label>
-                    <select id="addAccountProduct" required style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px;">
-                        <option value="">Chọn sản phẩm</option>
-                    </select>
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Username *</label>
-                    <input type="text" id="addAccountUsername" required style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px;" placeholder="user@example.com">
-                </div>
-
-                <div style="margin-bottom: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Password *</label>
-                    <input type="text" id="addAccountPassword" required style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px;" placeholder="password123">
-                </div>
-
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">
-                        <i class="fas fa-save"></i> Lưu
-                    </button>
-                    <button type="button" class="btn btn-secondary" onclick="closeAddAccountModal()">
-                        <i class="fas fa-times"></i> Hủy
-                    </button>
-                </div>
-            </form>
+    <!-- Add Account Modal -->
+    <div id="addAccountModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close-modal" onclick="closeAddAccountModal()">×</span>
+            <div id="addAccountModalBody">
+                <h2><i class="fas fa-plus-circle"></i> Thêm Tài Khoản Vào Kho</h2>
+                <form id="addAccountForm" onsubmit="submitAddAccount(event)">
+                    <div class="form-group">
+                        <label>Sản phẩm *</label>
+                        <select id="addAccountProduct" class="form-input" required onchange="loadVariantsForAdd()">
+                            <option value="">Chọn sản phẩm</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="variantSelectGroup" style="display: none;">
+                        <label>Gói/Option *</label>
+                        <select id="addAccountVariant" class="form-input" required>
+                            <option value="">Chọn gói</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" id="addAccountUsername" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="text" id="addAccountPassword" class="form-input" required>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary" style="flex:1;">
+                            <i class="fas fa-save"></i> Lưu tài khoản
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeAddAccountModal()" style="flex:1;">
+                            <i class="fas fa-times"></i> Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
 
     <script src="admin-script.js"></script>
     <script src="admin-products.js"></script>
@@ -357,45 +337,54 @@
                         result.accounts.forEach(acc => {
                             currentAccounts.push({
                                 ...acc,
-                                productName: allProducts[index].name,
-                                productId: allProducts[index].id
+                                productName: allProducts[index].name
                             });
                         });
                     }
                 });
-                renderAccounts();
+                
+                updateStockStats();
+                renderAccountsTable();
             })
             .catch(err => {
-                console.error(err);
-                document.getElementById('accountsTableBody').innerHTML = 
-                    '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #ef4444;">Lỗi tải dữ liệu</td></tr>';
+                console.error('Lỗi tải accounts:', err);
+                showNotification('Lỗi tải danh sách tài khoản', 'error');
             });
     }
 
+    // Update stock statistics
+    function updateStockStats() {
+        const productCount = new Set(currentAccounts.map(acc => acc.productId)).size;
+        const totalAccounts = currentAccounts.length;
+        
+        document.getElementById('totalStockProducts').textContent = productCount;
+        document.getElementById('totalStockAccounts').textContent = totalAccounts;
+    }
+
     // Render accounts table
-    function renderAccounts() {
+    function renderAccountsTable() {
         const tbody = document.getElementById('accountsTableBody');
+        if (!tbody) return;
+        
         if (currentAccounts.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: #999;">Chưa có tài khoản nào</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #666;">Chưa có tài khoản nào trong kho</td></tr>';
             return;
         }
-
-        tbody.innerHTML = currentAccounts.map((acc, index) => `
-            <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 1rem;">${index + 1}</td>
-                <td style="padding: 1rem;">
-                    <div><strong>${acc.username || 'N/A'}</strong></div>
-                    <div style="font-size: 0.875rem; color: #666;">${acc.productName || 'N/A'}</div>
-                </td>
-                <td style="padding: 1rem;">${acc.password || 'N/A'}</td>
-                <td style="padding: 1rem;">
-                    <span style="padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.875rem; background: ${acc.status === 'available' ? '#d1fae5' : '#e5e7eb'}; color: ${acc.status === 'available' ? '#10b981' : '#6b7280'};">
-                        ${acc.status === 'available' ? 'Còn hàng' : 'Đã bán'}
+        
+        tbody.innerHTML = currentAccounts.map(acc => `
+            <tr>
+                <td>${acc.productName}</td>
+                <td>${acc.variantName || 'N/A'}</td>
+                <td>${acc.username}</td>
+                <td>${acc.password}</td>
+                <td>
+                    <span class="badge ${acc.status === 'available' ? 'badge-success' : 'badge-secondary'}">
+                        ${acc.status === 'available' ? 'Có sẵn' : 'Đã bán'}
                     </span>
                 </td>
-                <td style="padding: 1rem;">
-                    <button onclick="deleteAccount('${acc.productId}', '${acc._id}')" style="background: #fee2e2; color: #ef4444; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">
-                        <i class="fas fa-trash"></i> Xóa
+                <td>
+                    <button class="btn-icon" onclick="deleteAccount('${acc._id}', '${acc.username}')" title="Xóa">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </td>
             </tr>
@@ -404,113 +393,130 @@
 
     // Open add account modal
     function openAddAccountModal() {
-        const modal = document.getElementById('addAccountModal');
-        modal.style.display = 'flex';
-        
-        // Load products with variants
+        // Load products for dropdown
         fetch('/api/products')
             .then(r => r.json())
             .then(data => {
                 if (data.success && data.products) {
-                    allProducts = data.products; // Lưu lại để lấy variant
                     const select = document.getElementById('addAccountProduct');
                     select.innerHTML = '<option value="">Chọn sản phẩm</option>' +
                         data.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
                 }
             });
+        
+        document.getElementById('addAccountModal').style.display = 'block';
+        document.getElementById('addAccountModal').classList.add('active');
     }
 
-    // Close modal
+    // Close add account modal
     function closeAddAccountModal() {
         document.getElementById('addAccountModal').style.display = 'none';
+        document.getElementById('addAccountModal').classList.remove('active');
         document.getElementById('addAccountForm').reset();
+        document.getElementById('variantSelectGroup').style.display = 'none';
+    }
+
+    // Load variants for selected product
+    function loadVariantsForAdd() {
+        const productId = document.getElementById('addAccountProduct').value;
+        const variantGroup = document.getElementById('variantSelectGroup');
+        const variantSelect = document.getElementById('addAccountVariant');
+        
+        if (!productId) {
+            variantGroup.style.display = 'none';
+            return;
+        }
+        
+        const product = allProducts.find(p => p.id === productId);
+        if (product && product.variants && product.variants.length > 0) {
+            variantSelect.innerHTML = '<option value="">Chọn gói</option>' +
+                product.variants.map((v, i) => `<option value="${i}">${i + 1} - ${v.name}</option>`).join('');
+            variantGroup.style.display = 'block';
+        } else {
+            variantGroup.style.display = 'none';
+        }
     }
 
     // Submit add account
-    function submitAddAccount(e) {
-        e.preventDefault();
+    function submitAddAccount(event) {
+        event.preventDefault();
         
         const productId = document.getElementById('addAccountProduct').value;
+        const variantIndex = document.getElementById('addAccountVariant').value;
         const username = document.getElementById('addAccountUsername').value;
         const password = document.getElementById('addAccountPassword').value;
-
+        
         if (!productId || !username || !password) {
-            alert('Vui lòng điền đầy đủ thông tin!');
+            showNotification('Vui lòng điền đầy đủ thông tin', 'error');
             return;
         }
-
-        // Tìm product và lấy variant đầu tiên
+        
         const product = allProducts.find(p => p.id === productId);
-        if (!product) {
-            alert('Không tìm thấy sản phẩm!');
-            return;
-        }
-
-        if (!product.variants || product.variants.length === 0) {
-            alert('Sản phẩm này chưa có gói/variant nào!');
-            return;
-        }
-
-        const variantName = product.variants[0].name; // Lấy variant đầu tiên
-
+        const variantName = product && product.variants && product.variants.length > 0 
+            ? product.variants[variantIndex || 0].name 
+            : 'default';
+        
+        const accountData = {
+            username: username,
+            password: password,
+            variantName: variantName
+        };
+        
         fetch(`/api/products/${productId}/stock`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('adminToken')
             },
-            body: JSON.stringify({
-                variantName: variantName, // GỬI VARIANT NAME
-                accounts: [{
-                    username: username,
-                    password: password
-                }]
-            })
+            body: JSON.stringify(accountData)
         })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Thêm tài khoản thành công!');
+                showNotification('Đã thêm tài khoản vào kho', 'success');
                 closeAddAccountModal();
-                loadAllAccounts(); // Reload all
+                loadAllAccounts();
             } else {
-                alert('Lỗi: ' + (data.error || data.message || 'Không thể thêm tài khoản'));
+                showNotification('Lỗi: ' + data.error, 'error');
             }
         })
         .catch(err => {
-            console.error(err);
-            alert('Có lỗi xảy ra: ' + err.message);
+            console.error('Lỗi thêm tài khoản:', err);
+            showNotification('Không thể thêm tài khoản', 'error');
         });
     }
 
     // Delete account
-    function deleteAccount(productId, accountId) {
-        if (!confirm('Bạn có chắc muốn xóa tài khoản này?')) return;
-
-        fetch(`/api/products/${productId}/accounts/${accountId}`, {
+    function deleteAccount(accountId, username) {
+        if (!confirm(`Xóa tài khoản "${username}"?`)) return;
+        
+        fetch(`/api/products/accounts/${accountId}`, {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
         })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                alert('Đã xóa tài khoản!');
-                loadAllAccounts(); // Reload all
+                showNotification('Đã xóa tài khoản', 'success');
+                loadAllAccounts();
             } else {
-                alert('Lỗi: ' + data.message);
+                showNotification('Lỗi: ' + data.error, 'error');
             }
+        })
+        .catch(err => {
+            console.error('Lỗi xóa tài khoản:', err);
+            showNotification('Không thể xóa tài khoản', 'error');
         });
     }
 
-    // Init when navigate to accounts
-    const originalNavigate = window.navigateToPage;
-    window.navigateToPage = function(page) {
-        if (originalNavigate) originalNavigate(page);
-        if (page === 'accounts') {
-            loadAllAccounts(); // Load all accounts immediately
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load accounts when accounts tab is shown
+        const accountsTab = document.querySelector('[data-page="accounts"]');
+        if (accountsTab) {
+            accountsTab.addEventListener('click', loadAllAccounts);
         }
-    };
+    });
     </script>
 </body>
 </html>
-
