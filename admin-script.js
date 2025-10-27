@@ -471,6 +471,82 @@ function logout() {
     showLoginPage();
 }
 
+// Load Account Stock Stats
+async function loadAccountStockStats() {
+    try {
+        const response = await fetch(`${API_BASE}/admin/dashboard`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            // Update stock stats
+            const totalStockProducts = document.getElementById('totalStockProducts');
+            const totalStockAccounts = document.getElementById('totalStockAccounts');
+            
+            if (totalStockProducts) {
+                totalStockProducts.textContent = data.stats.totalProducts || 0;
+            }
+            if (totalStockAccounts) {
+                totalStockAccounts.textContent = data.stats.totalAccounts || 0;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading account stock stats:', error);
+    }
+}
+
+// Load Accounts by Product
+async function loadAccountsByProduct() {
+    const productId = document.getElementById('accountProductFilter')?.value;
+    const tbody = document.getElementById('accountsTableBody');
+    
+    if (!tbody) {
+        console.log('accountsTableBody element not found');
+        return;
+    }
+
+    if (!productId) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Vui lòng chọn sản phẩm</td></tr>';
+        return;
+    }
+
+    try {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Đang tải...</td></tr>';
+        
+        const response = await fetch(`${API_BASE}/products/${productId}/accounts`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const data = await response.json();
+
+        if (data.success && data.accounts.length > 0) {
+            tbody.innerHTML = data.accounts.map(acc => `
+                <tr>
+                    <td>Sản phẩm #${acc.productId || acc.product_id}</td>
+                    <td>${acc.variantName || 'N/A'}</td>
+                    <td>${acc.username}</td>
+                    <td>${acc.password}</td>
+                    <td>
+                        <span class="badge ${acc.status === 'available' ? 'badge-success' : 'badge-secondary'}">
+                            ${acc.status === 'available' ? 'Có sẵn' : 'Đã bán'}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn-icon" onclick="deleteAccount('${acc.productId || acc.product_id}', '${acc._id || acc.id}', '${acc.username}')" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có tài khoản nào</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading accounts:', error);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Lỗi tải dữ liệu</td></tr>';
+    }
+}
+
 
 // Show pages
 function showLoginPage() {
@@ -534,6 +610,7 @@ function navigateToPage(page) {
         case 'accounts':
             document.getElementById('accountsContent').style.display = 'block';
             loadProductsForFilter();
+            loadAccountStockStats();
             break;
     }
 }

@@ -179,9 +179,14 @@
             <div id="accountsContent" class="content-section">
                 <div class="section-header">
                     <h2><i class="fas fa-database"></i> Kho tài khoản</h2>
-                    <button class="btn btn-primary" onclick="openAddAccountModal()">
-                        <i class="fas fa-plus"></i> Thêm tài khoản
-                    </button>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <select id="accountProductFilter" class="filter-select" onchange="loadAccountsByProduct()">
+                            <option value="">Chọn sản phẩm</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="openAddAccountModal()">
+                            <i class="fas fa-plus"></i> Thêm tài khoản
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="stat-cards-row">
