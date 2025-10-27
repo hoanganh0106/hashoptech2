@@ -1124,7 +1124,8 @@ body {
 @media (max-width: 768px) {
     /* Mobile Menu Toggle */
     .mobile-menu-toggle {
-        display: block;
+        display: block !important;
+        visibility: visible !important;
     }
     
     /* Sidebar Mobile Behavior */
