@@ -512,7 +512,7 @@ async function loadOrders() {
     const tbody = document.getElementById('ordersTableBody');
 
     try {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Đang tải...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Đang tải...</td></tr>';
 
         const url = `${API_BASE}/orders${status ? '?status=' + status : ''}`;
         const response = await fetch(url, {
@@ -526,22 +526,17 @@ async function loadOrders() {
                 <tr>
                     <td><strong>${order.order_code}</strong></td>
                     <td>${order.customer_name}</td>
-                    <td>${order.customer_email}</td>
+                    <td>${order.product_name || 'N/A'}</td>
                     <td><strong>${formatPrice(order.total_amount)}</strong></td>
                     <td><span class="status-badge status-${order.payment_status}">${getStatusText(order.payment_status)}</span></td>
                     <td>${formatDate(order.created_at)}</td>
-                    <td>
-                        <button class="btn btn-primary" onclick="viewOrder('${order.order_code}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </td>
                 </tr>
             `).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Không có đơn hàng</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Không có đơn hàng</td></tr>';
         }
     } catch (error) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Lỗi tải dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Lỗi tải dữ liệu</td></tr>';
     }
 }
 
@@ -882,9 +877,8 @@ function formatDate(dateString) {
 
 function getStatusText(status) {
     const texts = {
-        'pending': 'Chờ xử lý',
         'paid': 'Đã thanh toán',
-        'delivered': 'Đã giao',
+        'cancelled': 'Đã hủy',
         'available': 'Có sẵn',
         'sold': 'Đã bán'
     };

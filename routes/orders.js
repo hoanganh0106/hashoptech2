@@ -169,23 +169,35 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     const orders = await Order.find(filter)
+      .populate('items.productId', 'name')
       .sort({ createdAt: -1 })
       .limit(100)
       .lean();
 
-    const formattedOrders = orders.map(order => ({
-      id: order._id.toString(),
-      order_code: order.orderCode,
-      customer_name: order.customerName,
-      customer_email: order.customerEmail,
-      customer_phone: order.customerPhone,
-      total_amount: order.totalAmount,
-      payment_status: order.paymentStatus,
-      delivery_status: order.deliveryStatus,
-      created_at: order.createdAt,
-      paid_at: order.paidAt,
-      items: order.items
-    }));
+    const formattedOrders = orders.map(order => {
+      // Lấy tên sản phẩm từ items
+      const productNames = order.items.map(item => {
+        if (item.productId && item.productId.name) {
+          return item.productId.name;
+        }
+        return 'Sản phẩm không xác định';
+      }).join(', ');
+
+      return {
+        id: order._id.toString(),
+        order_code: order.orderCode,
+        customer_name: order.customerEmail, // Hiển thị email thay vì tên
+        customer_email: order.customerEmail,
+        customer_phone: order.customerPhone,
+        product_name: productNames, // Thêm tên sản phẩm
+        total_amount: order.totalAmount,
+        payment_status: order.paymentStatus === 'pending' ? 'cancelled' : order.paymentStatus, // Chuyển pending thành cancelled
+        delivery_status: order.deliveryStatus,
+        created_at: order.createdAt,
+        paid_at: order.paidAt,
+        items: order.items
+      };
+    });
 
     res.json({
       success: true,

@@ -893,6 +893,36 @@ body {
     font-size: 0.9rem;
 }
 
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-paid {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-available {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-sold {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
 /* Orders Table */
 .orders-table-container {
     background: white;
