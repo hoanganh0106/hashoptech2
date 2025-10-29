@@ -3,6 +3,8 @@ const API_BASE = window.location.origin + '/api';
 
 // Product Data
 let products = [];
+let filteredProducts = []; // Store filtered products for search
+let currentCategory = 'all'; // Current selected category
 
 // Cart Management
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -27,8 +29,11 @@ async function loadProducts() {
 
         if (data.success) {
             products = data.products;
+            filteredProducts = [...products]; // Initialize filtered products
             console.log('✅ Products loaded:', products.length);
+            renderCategoryButtons();
             renderProducts();
+            updateSearchStats(products.length, products.length);
         } else {
             console.error('❌ API returned error:', data.error);
         }
@@ -46,64 +51,168 @@ function renderProducts() {
         return;
     }
     
-    if (!products || products.length === 0) {
+    if (!filteredProducts || filteredProducts.length === 0) {
         console.warn('⚠️ No products to render');
-        productsGrid.innerHTML = '<div style="text-align:center; padding:3rem; color:#999;">Chưa có sản phẩm nào</div>';
+        productsGrid.innerHTML = `
+            <div class="no-results">
+                <i class="fas fa-search"></i>
+                <h3>Không tìm thấy sản phẩm</h3>
+                <p>Thử tìm kiếm với từ khóa khác hoặc kiểm tra lại chính tả</p>
+            </div>
+        `;
         return;
     }
     
-    console.log('✅ Rendering', products.length, 'products');
+    console.log('✅ Rendering', filteredProducts.length, 'products');
     
-    productsGrid.innerHTML = products.map(product => {
-        // Lấy giá thấp nhất từ variants
-        const minPrice = product.variants && product.variants.length > 0
-            ? Math.min(...product.variants.map(v => v.price || 0))
-            : (product.price || 0);
-
-        const priceDisplay = product.variants && product.variants.length > 1
-            ? `Từ ${formatPrice(minPrice)}`
-            : formatPrice(minPrice);
-
+    // Nhóm sản phẩm theo category
+    const groupedProducts = groupProductsByCategory(filteredProducts);
+    
+    // Render từng nhóm category
+    productsGrid.innerHTML = Object.keys(groupedProducts).map(category => {
+        const products = groupedProducts[category];
         return `
-            <div class="product-card" onclick="showProductDetails('${product.id}')">
-                ${product.image_url ? `
-                    <img src="${product.image_url}" alt="${product.name}" style="width:100%; height:200px; object-fit:cover;">
-                ` : `
-                    <div class="product-image">
-                        <span style="font-size: 4rem;">${product.icon || '📦'}</span>
-                    </div>
-                `}
-                <div class="product-info">
-                    <div class="product-category">${product.category || 'Sản phẩm'}</div>
-                    <h3 class="product-name">${product.name}</h3>
-                    ${product.description ? `
-                        <div class="product-description">
-                            ${(() => {
-                                const lines = product.description.split('\n').filter(line => line.trim()).length > 0 
-                                    ? product.description.split('\n').filter(line => line.trim())
-                                    : product.description.split(',').map(item => item.trim());
-                                
-                                // Trên mobile chỉ hiển thị 2 dòng đầu
-                                const displayLines = window.innerWidth <= 768 ? lines.slice(0, 2) : lines;
-                                
-                                return displayLines.map(line => 
-                                    `<div class="description-item">${line.trim()}</div>`
-                                ).join('');
-                            })()}
-                        </div>
-                    ` : ''}
-                    ${product.features && product.features.length > 0 ? `
-                        <ul class="product-features">
-                            ${product.features.slice(0, 2).map(feature => `<li>${feature}</li>`).join('')}
-                        </ul>
-                    ` : ''}
-                    <div class="product-footer">
-                        <div class="product-price">${priceDisplay}</div>
-                    </div>
+            <div class="category-section">
+                <div class="category-header">
+                    <h3 class="category-title">${category}</h3>
+                    <span class="category-count">${products.length} sản phẩm</span>
+                </div>
+                <div class="category-products">
+                    ${products.map(product => renderProductCard(product)).join('')}
                 </div>
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Render category filter buttons
+ */
+function renderCategoryButtons() {
+    const categoryButtonsContainer = document.getElementById('categoryButtons');
+    if (!categoryButtonsContainer) return;
+    
+    // Lấy tất cả categories từ products
+    const categories = [...new Set(products.map(product => product.category || 'Khác'))];
+    
+    // Tạo buttons cho từng category
+    categoryButtonsContainer.innerHTML = categories.map(category => `
+        <button class="category-btn" data-category="${category}" onclick="filterByCategory('${category}')">
+            <i class="fas fa-tag"></i>
+            ${category}
+        </button>
+    `).join('');
+}
+
+/**
+ * Filter products by category
+ */
+function filterByCategory(category) {
+    currentCategory = category;
+    
+    // Update active button
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-category="${category}"]`).classList.add('active');
+    
+    // Filter products
+    if (category === 'all') {
+        filteredProducts = [...products];
+    } else {
+        filteredProducts = products.filter(product => 
+            (product.category || 'Khác') === category
+        );
+    }
+    
+    // Re-apply search if there's a search term
+    const searchInput = document.getElementById('productSearchInput');
+    if (searchInput && searchInput.value.trim()) {
+        searchProducts();
+    } else {
+        renderProducts();
+        updateSearchStats(filteredProducts.length, products.length);
+    }
+}
+
+/**
+ * Nhóm sản phẩm theo category
+ */
+function groupProductsByCategory(products) {
+    const grouped = {};
+    
+    products.forEach(product => {
+        const category = product.category || 'Khác';
+        if (!grouped[category]) {
+            grouped[category] = [];
+        }
+        grouped[category].push(product);
+    });
+    
+    // Sắp xếp categories theo alphabet
+    const sortedCategories = Object.keys(grouped).sort();
+    const sortedGrouped = {};
+    
+    sortedCategories.forEach(category => {
+        sortedGrouped[category] = grouped[category];
+    });
+    
+    return sortedGrouped;
+}
+
+/**
+ * Render một product card
+ */
+function renderProductCard(product) {
+    const minPrice = product.variants && product.variants.length > 0
+        ? Math.min(...product.variants.map(v => v.price || 0))
+        : (product.price || 0);
+
+    const priceDisplay = product.variants && product.variants.length > 1
+        ? `Từ ${formatPrice(minPrice)}`
+        : formatPrice(minPrice);
+
+    return `
+        <div class="product-card" onclick="showProductDetails('${product.id}')">
+            ${product.image_url ? `
+                <img src="${product.image_url}" alt="${product.name}" style="width:100%; aspect-ratio:1; object-fit:${product.image_fit || 'cover'}; object-position:center;">
+            ` : `
+                <div class="product-image">
+                    <span style="font-size: 4rem;">${product.icon || '📦'}</span>
+                </div>
+            `}
+            <div class="product-info">
+                <h3 class="product-name">${product.name}</h3>
+                ${product.description ? `
+                    <div class="product-description">
+                        ${(() => {
+                            const lines = product.description.split('\n').filter(line => line.trim()).length > 0 
+                                ? product.description.split('\n').filter(line => line.trim())
+                                : product.description.split(',').map(item => item.trim());
+                            
+                            // Trên mobile chỉ hiển thị 2 dòng đầu
+                            const displayLines = window.innerWidth <= 768 ? lines.slice(0, 2) : lines;
+                            
+                            return displayLines.map(line => 
+                                `<div class="description-item">${line.trim()}</div>`
+                            ).join('');
+                        })()}
+                    </div>
+                ` : ''}
+                ${product.features && product.features.length > 0 ? `
+                    <ul class="product-features">
+                        ${product.features.slice(0, 2).map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                ` : ''}
+                <div class="product-footer">
+                    <div class="product-price">${priceDisplay}</div>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); showProductDetails('${product.id}')">
+                        Xem chi tiết
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // Show Product Details với options
@@ -821,3 +930,95 @@ document.addEventListener('click', function(e) {
         }
     }
 });
+
+/**
+ * Search products by phrase (not individual words)
+ */
+function searchProducts() {
+    const searchInput = document.getElementById('productSearchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    
+    // Show/hide clear button
+    if (searchTerm.length > 0) {
+        clearBtn.style.display = 'flex';
+    } else {
+        clearBtn.style.display = 'none';
+    }
+    
+    if (searchTerm.length === 0) {
+        // Apply current category filter
+        if (currentCategory === 'all') {
+            filteredProducts = [...products];
+        } else {
+            filteredProducts = products.filter(product => 
+                (product.category || 'Khác') === currentCategory
+            );
+        }
+        renderProducts();
+        updateSearchStats(filteredProducts.length, products.length);
+        return;
+    }
+    
+    // First filter by current category, then apply search
+    let baseProducts = currentCategory === 'all' 
+        ? products 
+        : products.filter(product => (product.category || 'Khác') === currentCategory);
+    
+    filteredProducts = baseProducts.filter(product => {
+        const searchableText = [
+            product.name,
+            product.category,
+            product.description || ''
+        ].join(' ').toLowerCase();
+        
+        // Check if the search term appears as a complete phrase
+        return searchableText.includes(searchTerm);
+    });
+    
+    renderProducts();
+    updateSearchStats(filteredProducts.length, products.length);
+}
+
+/**
+ * Clear search
+ */
+function clearSearch() {
+    const searchInput = document.getElementById('productSearchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    
+    searchInput.value = '';
+    clearBtn.style.display = 'none';
+    
+    // Apply current category filter
+    if (currentCategory === 'all') {
+        filteredProducts = [...products];
+    } else {
+        filteredProducts = products.filter(product => 
+            (product.category || 'Khác') === currentCategory
+        );
+    }
+    renderProducts();
+    updateSearchStats(filteredProducts.length, products.length);
+}
+
+/**
+ * Update search statistics
+ */
+function updateSearchStats(filteredCount, totalCount) {
+    const searchStats = document.getElementById('searchStats');
+    
+    if (!searchStats) return;
+    
+    if (filteredCount === totalCount) {
+        searchStats.innerHTML = `
+            <i class="fas fa-info-circle"></i>
+            Hiển thị tất cả ${totalCount} sản phẩm
+        `;
+    } else {
+        searchStats.innerHTML = `
+            <i class="fas fa-search"></i>
+            Tìm thấy ${filteredCount} sản phẩm trong tổng số ${totalCount} sản phẩm
+        `;
+    }
+}

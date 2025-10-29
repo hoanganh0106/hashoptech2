@@ -49,6 +49,7 @@ app.use(express.static('.'));
 // Serve uploads folder
 app.use('/uploads', express.static('uploads'));
 
+
 // API Routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);

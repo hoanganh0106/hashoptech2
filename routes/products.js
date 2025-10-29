@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
         name: product.name,
         description: product.description,
         image_url: product.imageUrl,
+        image_fit: product.imageFit,
         category: product.category,
         icon: product.icon,
         stock: stockCount,
@@ -76,6 +77,7 @@ router.get('/:id', async (req, res) => {
         name: product.name,
         description: product.description,
         image_url: product.imageUrl,
+        image_fit: product.imageFit,
         category: product.category,
         variants: product.variants,
         isActive: product.isActive,
@@ -93,7 +95,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { name, description, imageUrl, category, variants } = req.body;
+    const { name, description, imageUrl, imageFit, category, variants } = req.body;
 
     if (!name || !description) {
       return res.status(400).json({ error: 'Thiếu thông tin sản phẩm' });
@@ -107,6 +109,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       name,
       description,
       imageUrl: imageUrl || '',
+      imageFit: imageFit || 'cover',
       category: category || 'other',
       variants: variants.map(v => ({
         name: v.name,
@@ -136,21 +139,25 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 /**
- * PUT /api/products/:id - Cập nhật sản phẩm (admin only)
+ * PUT /api/products/:id - Cập nhật sản phẩm với tự động xóa ảnh cũ (admin only)
  */
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { name, description, imageUrl, category, variants, isActive } = req.body;
+    const { name, description, imageUrl, imageFit, category, variants, isActive } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
     }
 
+    // Lưu URL ảnh cũ để xóa sau
+    const oldImageUrl = product.imageUrl;
+
     // Update fields
     if (name) product.name = name;
     if (description) product.description = description;
     if (imageUrl !== undefined) product.imageUrl = imageUrl;
+    if (imageFit !== undefined) product.imageFit = imageFit;
     if (category) product.category = category;
     if (isActive !== undefined) product.isActive = isActive;
     
@@ -167,6 +174,28 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
     await product.save();
 
+    // Xóa ảnh cũ nếu có ảnh mới và khác với ảnh cũ
+    if (imageUrl && oldImageUrl && imageUrl !== oldImageUrl && oldImageUrl.trim() !== '') {
+      try {
+        const oldImagePath = path.join('uploads', 'products', path.basename(oldImageUrl));
+        
+        // Validation: chỉ xóa file trong thư mục products và có extension hợp lệ
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const fileExt = path.extname(oldImagePath).toLowerCase();
+        
+        if (allowedExtensions.includes(fileExt) && oldImagePath.includes('uploads/products/')) {
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log('✅ Đã xóa ảnh cũ khi cập nhật sản phẩm:', oldImagePath);
+          }
+        } else {
+          console.warn('⚠️ Không xóa file không hợp lệ khi cập nhật:', oldImagePath);
+        }
+      } catch (deleteError) {
+        console.warn('⚠️ Không thể xóa ảnh cũ khi cập nhật:', deleteError.message);
+      }
+    }
+
     res.json({
       success: true,
       message: 'Đã cập nhật sản phẩm',
@@ -182,13 +211,35 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 /**
- * DELETE /api/products/:id - Xóa sản phẩm (admin only)
+ * DELETE /api/products/:id - Xóa sản phẩm với tự động xóa ảnh (admin only)
  */
 router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
+    }
+
+    // Xóa ảnh của sản phẩm trước khi xóa sản phẩm
+    if (product.imageUrl && product.imageUrl.trim() !== '') {
+      try {
+        const imagePath = path.join('uploads', 'products', path.basename(product.imageUrl));
+        
+        // Validation: chỉ xóa file trong thư mục products và có extension hợp lệ
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const fileExt = path.extname(imagePath).toLowerCase();
+        
+        if (allowedExtensions.includes(fileExt) && imagePath.includes('uploads/products/')) {
+          if (fs.existsSync(imagePath)) {
+            fs.unlinkSync(imagePath);
+            console.log('✅ Đã xóa ảnh khi xóa sản phẩm:', imagePath);
+          }
+        } else {
+          console.warn('⚠️ Không xóa file không hợp lệ khi xóa sản phẩm:', imagePath);
+        }
+      } catch (deleteError) {
+        console.warn('⚠️ Không thể xóa ảnh khi xóa sản phẩm:', deleteError.message);
+      }
     }
 
     // Soft delete: chỉ đánh dấu là không active
@@ -206,12 +257,40 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 });
 
 /**
- * POST /api/products/upload - Upload ảnh sản phẩm (admin only)
+ * POST /api/products/upload - Upload ảnh sản phẩm với tự động xóa ảnh cũ (admin only)
  */
 router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'Không có file được upload' });
+    }
+
+    // Lấy URL ảnh cũ từ form data
+    const oldImageUrl = req.body.oldImageUrl;
+    
+    // Xóa ảnh cũ nếu có
+    if (oldImageUrl && oldImageUrl.trim() !== '') {
+      try {
+        // Chuyển đổi URL thành đường dẫn file
+        const oldImagePath = path.join('uploads', 'products', path.basename(oldImageUrl));
+        
+        // Validation: chỉ xóa file trong thư mục products và có extension hợp lệ
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+        const fileExt = path.extname(oldImagePath).toLowerCase();
+        
+        if (allowedExtensions.includes(fileExt) && oldImagePath.includes('uploads/products/')) {
+          // Kiểm tra file tồn tại và xóa
+          if (fs.existsSync(oldImagePath)) {
+            fs.unlinkSync(oldImagePath);
+            console.log('✅ Đã xóa ảnh cũ:', oldImagePath);
+          }
+        } else {
+          console.warn('⚠️ Không xóa file không hợp lệ:', oldImagePath);
+        }
+      } catch (deleteError) {
+        console.warn('⚠️ Không thể xóa ảnh cũ:', deleteError.message);
+        // Không throw error, chỉ log warning
+      }
     }
 
     const imageUrl = `/uploads/products/${req.file.filename}`;
@@ -225,6 +304,7 @@ router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), 
     res.status(500).json({ error: 'Lỗi upload ảnh' });
   }
 });
+
 
 /**
  * GET /api/products/:productId/stock - Lấy số lượng tài khoản còn trong kho (admin only)

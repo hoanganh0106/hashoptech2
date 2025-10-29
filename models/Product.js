@@ -45,6 +45,11 @@ const productSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  imageFit: {
+    type: String,
+    enum: ['cover', 'contain', 'fill', 'scale-down'],
+    default: 'cover'
+  },
   category: {
     type: String,
     default: 'other'

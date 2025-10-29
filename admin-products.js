@@ -190,7 +190,7 @@ function getProductFormHTML(product = null) {
                 <button type="submit" class="btn btn-primary" style="flex:1;">
                     <i class="fas fa-save"></i> Lưu sản phẩm
                 </button>
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('productModal').style.display='none'; document.getElementById('productModal').classList.remove('show', 'active'); return false;">
                     Hủy
                 </button>
             </div>
@@ -256,37 +256,10 @@ function addVariant() {
 }
 
 /**
- * Lưu giá trị hiện tại của các variant inputs
- */
-function saveCurrentVariantValues() {
-    const variantInputs = document.querySelectorAll('.variant-item');
-    variantInputs.forEach((item, index) => {
-        if (productVariants[index]) {
-            const nameInput = item.querySelector('.variant-name');
-            const priceInput = item.querySelector('.variant-price');
-            const durationInput = item.querySelector('.variant-duration');
-            const unitSelect = item.querySelector('.variant-unit');
-            const descInput = item.querySelector('.variant-desc');
-            const stockTypeSelect = item.querySelector('.variant-stock-type');
-
-            if (nameInput) productVariants[index].name = nameInput.value;
-            if (priceInput) productVariants[index].price = parseFloat(priceInput.value) || 0;
-            if (durationInput) productVariants[index].duration_value = parseInt(durationInput.value) || 1;
-            if (unitSelect) productVariants[index].duration_unit = unitSelect.value;
-            if (descInput) productVariants[index].description = descInput.value;
-            if (stockTypeSelect) productVariants[index].stockType = stockTypeSelect.value;
-        }
-    });
-}
-
-/**
  * Render danh sách variants
  */
 function renderVariants() {
     const container = document.getElementById('variantsList');
-
-    // Lưu giá trị hiện tại trước khi render
-    saveCurrentVariantValues();
 
     if (productVariants.length === 0) {
         container.innerHTML = '<p style="color:#666;">Chưa có gói nào. Click "Thêm gói" để tạo.</p>';
@@ -378,8 +351,6 @@ function updateVariantsFromForm() {
  */
 function removeVariant(index) {
     if (confirm('Xóa gói này?')) {
-        // Lưu giá trị trước khi xóa
-        saveCurrentVariantValues();
         productVariants.splice(index, 1);
         renderVariants();
     }
@@ -390,9 +361,6 @@ function removeVariant(index) {
  */
 async function saveProduct(e) {
     e.preventDefault();
-
-    // Lưu giá trị variants trước khi xử lý
-    saveCurrentVariantValues();
 
     const name = document.getElementById('productName').value.trim();
     const category = document.getElementById('productCategory').value.trim();

@@ -27,6 +27,20 @@
                     <span class="cart-count">0</span>
                 </div>
             </div>
+            
+            <!-- Search Bar in Header -->
+            <div class="header-search">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="productSearchInput" placeholder="Tìm kiếm sản phẩm theo tên, danh mục hoặc mô tả..." onkeyup="searchProducts()">
+                    <button type="button" id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="search-stats" id="searchStats">
+                    <!-- Search results count will be shown here -->
+                </div>
+            </div>
         </div>
     </header>
 
@@ -45,6 +59,18 @@
     <section class="products" id="products">
         <div class="container">
             <h2 class="section-title">Sản Phẩm Nổi Bật</h2>
+            
+            <!-- Category Filter -->
+            <div class="category-filter">
+                <button class="category-btn active" data-category="all" onclick="filterByCategory('all')">
+                    <i class="fas fa-th"></i>
+                    Tất cả
+                </button>
+                <div id="categoryButtons">
+                    <!-- Category buttons will be dynamically inserted here -->
+                </div>
+            </div>
+            
             <div class="products-grid" id="productsGrid">
                 <!-- Products will be dynamically inserted here -->
             </div>

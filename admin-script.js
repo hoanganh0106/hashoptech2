@@ -1165,9 +1165,12 @@ function deleteProduct(id, name) {
 // Override loadProducts to use new version
 const originalLoadProducts = loadProducts;
 function loadProducts() {
+    console.log('loadProducts called');
     if (typeof loadProductsNew === 'function') {
+        console.log('Calling loadProductsNew');
         loadProductsNew();
     } else {
+        console.log('loadProductsNew not found, calling original');
         originalLoadProducts();
     }
 }
