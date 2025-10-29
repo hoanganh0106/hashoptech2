@@ -209,12 +209,6 @@ async function uploadProductImage() {
 
     const formData = new FormData();
     formData.append('image', file);
-    
-    // Gửi ảnh cũ để xóa
-    const oldImageUrl = document.getElementById('productImageUrl').value;
-    if (oldImageUrl) {
-        formData.append('oldImageUrl', oldImageUrl);
-    }
 
     try {
         showNotification('Đang upload ảnh...', 'info');
