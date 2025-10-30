@@ -6,7 +6,7 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const uploadCloudflare = require('../middleware/upload-cloudflare');
 const FormData = require('form-data');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Import Models
 const Product = require('../models/Product');

@@ -4,7 +4,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 // Import Models
 const User = require('../models/User');
