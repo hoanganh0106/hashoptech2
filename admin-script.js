@@ -1,6 +1,8 @@
 // Admin Panel JavaScript
 const API_BASE = window.location.origin + '/api';
+window.API_BASE = API_BASE; // Export để admin-products.js có thể dùng
 let authToken = localStorage.getItem('adminToken');
+window.authToken = authToken; // Export để admin-products.js có thể dùng
 let currentUser = null;
 
 // Initialize
@@ -432,8 +434,19 @@ async function handleLogin(e) {
 
         if (data.success) {
             authToken = data.token;
+            window.authToken = authToken; // Cập nhật window.authToken
             localStorage.setItem('adminToken', authToken);
             currentUser = data.admin;
+            
+            // Cập nhật authToken trong admin-products.js nếu hàm tồn tại
+            try {
+                if (typeof window.updateAuthToken === 'function') {
+                    window.updateAuthToken(authToken);
+                }
+            } catch (e) {
+                console.warn('Không thể cập nhật authToken trong admin-products.js:', e);
+            }
+            
             console.log('Login successful, showing dashboard');
             showDashboard();
             loadDashboardStats();
@@ -458,6 +471,15 @@ async function verifyToken() {
 
         if (data.success) {
             currentUser = data.user;
+            window.authToken = authToken; // Cập nhật window.authToken
+            // Cập nhật authToken trong admin-products.js nếu hàm tồn tại
+            try {
+                if (typeof window.updateAuthToken === 'function') {
+                    window.updateAuthToken(authToken);
+                }
+            } catch (e) {
+                console.warn('Không thể cập nhật authToken:', e);
+            }
             showDashboard();
             loadDashboardStats();
         } else {

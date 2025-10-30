@@ -210,22 +210,38 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 /**
  * POST /api/products/upload - Upload ảnh sản phẩm (admin only)
  */
-router.post('/upload', authenticateToken, requireAdmin, upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'Không có file được upload' });
+router.post('/upload', authenticateToken, requireAdmin, (req, res) => {
+  upload.single('image')(req, res, (err) => {
+    // Xử lý lỗi từ multer
+    if (err) {
+      console.error('Multer upload error:', err);
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File quá lớn! Kích thước tối đa là 5MB' });
+      }
+      if (err.message && err.message.includes('Chỉ chấp nhận')) {
+        return res.status(400).json({ error: err.message });
+      }
+      return res.status(400).json({ error: 'Lỗi upload file: ' + err.message });
     }
 
-    const imageUrl = `/uploads/products/${req.file.filename}`;
-    
-    res.json({
-      success: true,
-      imageUrl
-    });
-  } catch (error) {
-    console.error('Upload error:', error);
-    res.status(500).json({ error: 'Lỗi upload ảnh' });
-  }
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Không có file được upload. Vui lòng chọn file ảnh.' });
+      }
+
+      const imageUrl = `/uploads/products/${req.file.filename}`;
+      
+      console.log('✅ Upload thành công:', imageUrl);
+      
+      res.json({
+        success: true,
+        imageUrl
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'Lỗi upload ảnh: ' + error.message });
+    }
+  });
 });
 
 

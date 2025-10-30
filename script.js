@@ -75,7 +75,7 @@ function renderProducts() {
             <div class="category-section">
                 <div class="category-header">
                     <h3 class="category-title">${category}</h3>
-                    <span class="category-count">${products.length} sản phẩm</span>
+                    
                 </div>
                 <div class="category-products">
                     ${products.map(product => renderProductCard(product)).join('')}

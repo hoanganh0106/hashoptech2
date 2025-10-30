@@ -1,4 +1,25 @@
 // Admin Products Management - Functions nâng cao
+// Sử dụng API_BASE và authToken từ admin-script.js (không khai báo lại để tránh conflict)
+// admin-script.js sẽ khai báo const API_BASE và let authToken, export vào window
+
+// Helper function để lấy API_BASE (sử dụng window.API_BASE từ admin-script.js)
+function getApiBase() {
+    return window.API_BASE || (window.location.origin + '/api');
+}
+
+// Helper function để lấy authToken (sử dụng window.authToken từ admin-script.js)
+function getAuthToken() {
+    return window.authToken || localStorage.getItem('adminToken');
+}
+
+// Hàm cập nhật authToken (được gọi sau khi login từ admin-script.js)
+window.updateAuthToken = function(token) {
+    if (token) {
+        window.authToken = token;
+        localStorage.setItem('adminToken', token);
+    }
+};
+
 let currentProductId = null;
 let productVariants = [];
 
@@ -7,7 +28,7 @@ let productVariants = [];
  */
 async function loadProductsNew() {
     try {
-        const response = await fetch(`${API_BASE}/products`);
+        const response = await fetch(`${getApiBase()}/products`);
         const data = await response.json();
 
         const grid = document.getElementById('productsList');
@@ -106,7 +127,7 @@ function closeModal() {
  */
 async function editProductNew(id) {
     try {
-        const response = await fetch(`${API_BASE}/products/${id}`);
+        const response = await fetch(`${getApiBase()}/products/${id}`);
         const data = await response.json();
 
         if (!data.success) {
@@ -116,6 +137,8 @@ async function editProductNew(id) {
 
         currentProductId = id;
         const product = data.product;
+
+        console.log('Product data:', product); // Debug log
 
         // Load variants from product data and ensure they have description field
         productVariants = (product.variants || []).map(v => ({
@@ -144,6 +167,9 @@ async function editProductNew(id) {
  * HTML form sản phẩm
  */
 function getProductFormHTML(product = null) {
+    // Map imageUrl từ backend sang image_url cho frontend
+    const imageUrl = product?.image_url || product?.imageUrl || '';
+    
     return `
         <h2>${product ? 'Sửa' : 'Thêm'} Sản Phẩm</h2>
         <form id="productForm" onsubmit="saveProduct(event)">
@@ -172,9 +198,9 @@ function getProductFormHTML(product = null) {
                 <label>Ảnh sản phẩm</label>
                 <input type="file" id="productImage" class="form-input" accept="image/*" onchange="uploadProductImage()">
                 <div id="imagePreview" style="margin-top:0.5rem;">
-                    ${product?.image_url ? `<img src="${product.image_url}" style="max-width:200px; border-radius:8px;">` : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" style="max-width:200px; border-radius:8px;">` : ''}
                 </div>
-                <input type="hidden" id="productImageUrl" value="${product?.image_url || ''}">
+                <input type="hidden" id="productImageUrl" value="${imageUrl}">
             </div>
 
             <hr style="margin: 2rem 0;">
@@ -205,7 +231,23 @@ async function uploadProductImage() {
     const fileInput = document.getElementById('productImage');
     const file = fileInput.files[0];
 
-    if (!file) return;
+    if (!file) {
+        showNotification('Vui lòng chọn file ảnh', 'error');
+        return;
+    }
+
+    // Kiểm tra kích thước file (tối đa 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB', 'error');
+        return;
+    }
+
+    // Kiểm tra authToken
+    const authToken = getAuthToken();
+    if (!authToken) {
+        showNotification('Bạn chưa đăng nhập. Vui lòng đăng nhập lại!', 'error');
+        return;
+    }
 
     const formData = new FormData();
     formData.append('image', file);
@@ -213,27 +255,52 @@ async function uploadProductImage() {
     try {
         showNotification('Đang upload ảnh...', 'info');
 
-        const response = await fetch(`${API_BASE}/products/upload`, {
+        const response = await fetch(`${getApiBase()}/products/upload`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: formData
         });
 
+        // Kiểm tra response status
+        if (!response.ok) {
+            const errorText = await response.text();
+            let errorMessage = 'Lỗi upload ảnh';
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                errorMessage = `Lỗi ${response.status}: ${errorText || response.statusText}`;
+            }
+            showNotification(errorMessage, 'error');
+            console.error('Upload error:', response.status, errorText);
+            return;
+        }
+
         const data = await response.json();
 
-        if (data.success) {
-            document.getElementById('productImageUrl').value = data.imageUrl;
-            document.getElementById('imagePreview').innerHTML = `
-                <img src="${data.imageUrl}" style="max-width:200px; border-radius:8px;">
-            `;
+        if (data.success && data.imageUrl) {
+            const imageUrlInput = document.getElementById('productImageUrl');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            if (imageUrlInput) {
+                imageUrlInput.value = data.imageUrl;
+            }
+            
+            if (imagePreview) {
+                imagePreview.innerHTML = `
+                    <img src="${data.imageUrl}" style="max-width:200px; border-radius:8px;">
+                `;
+            }
+            
             showNotification('Upload ảnh thành công!', 'success');
         } else {
-            showNotification('Lỗi upload: ' + data.error, 'error');
+            showNotification('Lỗi upload: ' + (data.error || 'Không nhận được URL ảnh'), 'error');
         }
     } catch (error) {
-        showNotification('Không thể upload ảnh', 'error');
+        console.error('Upload error:', error);
+        showNotification('Không thể upload ảnh: ' + error.message, 'error');
     }
 }
 
@@ -366,8 +433,10 @@ async function saveProduct(e) {
     const category = document.getElementById('productCategory').value.trim();
     const description = document.getElementById('productDescription').value.trim();
     const icon = document.getElementById('productIcon').value.trim();
-    const image_url = document.getElementById('productImageUrl').value.trim();
+    const image_url = document.getElementById('productImageUrl')?.value.trim() || '';
     const features = []; // Không còn tính năng
+    
+    console.log('Saving product with imageUrl:', image_url); // Debug log
 
     // Validation
     if (!name || !category) {
@@ -396,23 +465,25 @@ async function saveProduct(e) {
         category,
         description: description || '', // Đảm bảo description là string trống nếu không có giá trị
         icon,
-        image_url,
+        imageUrl: image_url, // Chuyển image_url thành imageUrl để match với backend
         features,
         variants: productVariants,
         status: 'active'
     };
+    
+    console.log('Product data to save:', productData); // Debug log
 
     try {
         showNotification('Đang lưu...', 'info');
 
         const url = currentProductId 
-            ? `${API_BASE}/products/${currentProductId}`
-            : `${API_BASE}/products`;
+            ? `${getApiBase()}/products/${currentProductId}`
+            : `${getApiBase()}/products`;
 
         const response = await fetch(url, {
             method: currentProductId ? 'PUT' : 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
+                'Authorization': `Bearer ${getAuthToken()}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(productData)
@@ -439,10 +510,10 @@ async function deleteProductNew(id, name) {
     if (!confirm(`Xóa sản phẩm "${name}"?`)) return;
 
     try {
-        const response = await fetch(`${API_BASE}/products/${id}`, {
+        const response = await fetch(`${getApiBase()}/products/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${authToken}`
+                'Authorization': `Bearer ${getAuthToken()}`
             }
         });
 
