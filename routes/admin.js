@@ -4,7 +4,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const axios = require('axios');
 
 // Import Models
 const User = require('../models/User');
@@ -170,10 +170,9 @@ router.post('/test-cloudflare', authenticateToken, requireAdmin, async (req, res
     console.log('API Token:', CLOUDFLARE_API_TOKEN.substring(0, 10) + '...');
 
     // Test API connection bằng cách lấy danh sách images
-    const response = await fetch(
+    const response = await axios.get(
       `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
       {
-        method: 'GET',
         headers: {
           'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
           'Content-Type': 'application/json'
@@ -181,7 +180,7 @@ router.post('/test-cloudflare', authenticateToken, requireAdmin, async (req, res
       }
     );
 
-    const data = await response.json();
+    const data = response.data;
 
     if (data.success) {
       console.log('✅ Cloudflare Images API connection successful!');

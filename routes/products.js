@@ -6,7 +6,7 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const uploadCloudflare = require('../middleware/upload-cloudflare');
 const FormData = require('form-data');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const axios = require('axios');
 
 // Import Models
 const Product = require('../models/Product');
@@ -299,22 +299,21 @@ router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudfl
     });
 
     // Gọi API Cloudflare Images
-    const cloudflareResponse = await fetch(
+    const cloudflareResponse = await axios.post(
       `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
+      formData,
       {
-        method: 'POST',
         headers: {
           'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
           ...formData.getHeaders()
-        },
-        body: formData
+        }
       }
     );
 
-    const cloudflareData = await cloudflareResponse.json();
+    const cloudflareData = cloudflareResponse.data;
 
     // Kiểm tra phản hồi từ Cloudflare
-    if (!cloudflareResponse.ok) {
+    if (!cloudflareData.success) {
       console.error('❌ Cloudflare API Error:', cloudflareData);
       
       // Xử lý các lỗi cụ thể
