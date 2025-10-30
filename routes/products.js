@@ -291,10 +291,10 @@ router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudfl
       });
     }
 
-    // Tạo FormData để gửi lên Cloudflare
+    // Tạo FormData để gửi lên Cloudflare (multer memoryStorage => dùng buffer)
     const formData = new FormData();
-    formData.append('file', file.data, {
-      filename: file.name,
+    formData.append('file', file.buffer, {
+      filename: file.originalname,
       contentType: file.mimetype
     });
 
@@ -350,14 +350,22 @@ router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudfl
     }
 
     // Lấy URL CDN từ phản hồi
-    const imageUrl = cloudflareData.result.variants?.[0] || cloudflareData.result.id;
-    const fullImageUrl = `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_ID}/${imageUrl}`;
-    
-    console.log('✅ Upload Cloudflare thành công:', fullImageUrl);
-    
+    const variants = cloudflareData?.result?.variants;
+    if (!variants || variants.length === 0) {
+      console.error('❌ Không nhận được variants từ Cloudflare:', cloudflareData);
+      return res.status(500).json({
+        success: false,
+        error: 'Không nhận được URL ảnh từ Cloudflare (variants rỗng)'
+      });
+    }
+
+    const imageUrl = variants[0]; // URL đầy đủ từ Cloudflare (đã gồm account hash + variant)
+
+    console.log('✅ Upload Cloudflare thành công:', imageUrl);
+
     res.json({
       success: true,
-      imageUrl: fullImageUrl,
+      imageUrl,
       message: 'Upload ảnh lên Cloudflare Images thành công!'
     });
 

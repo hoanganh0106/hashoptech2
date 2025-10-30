@@ -1,15 +1,21 @@
 const mongoose = require('mongoose');
 const config = require('./config');
 
+// Debug: đọc biến env thực tế!
+console.log('DEBUG process.env.MONGODB_URI =', process.env.MONGODB_URI);
+console.log('DEBUG process.env.MONGODB_DB_NAME =', process.env.MONGODB_DB_NAME);
+console.log('DEBUG config.mongodb.uri =', config.mongodb.uri);
+console.log('DEBUG config.mongodb.dbName =', config.mongodb.dbName);
+
 // Kết nối MongoDB
 async function connectDB() {
   try {
-    const connectionString = `${config.mongodb.uri.split('?')[0]}${config.mongodb.dbName}?${config.mongodb.uri.split('?')[1]}`;
-    
-    await mongoose.connect(connectionString, config.mongodb.options);
-    
+    const uri = config.mongodb.uri;
+    const dbName = config.mongodb.dbName;
+    if (!uri || !dbName) throw new Error('Thiếu MONGODB_URI hoặc MONGODB_DB_NAME trong .env');
+    await mongoose.connect(uri, { ...config.mongodb.options, dbName });
     console.log('✅ Đã kết nối MongoDB Atlas thành công!');
-    console.log(`📦 Database: ${config.mongodb.dbName}`);
+    console.log(`📦 Database: ${dbName}`);
   } catch (error) {
     console.error('❌ Lỗi kết nối MongoDB:', error.message);
     process.exit(1);
