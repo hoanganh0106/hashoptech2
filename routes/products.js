@@ -280,8 +280,8 @@ router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudfl
     }
 
     // Cấu hình Cloudflare Images API
-    const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
-    const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+    const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || 'e5dc4daf5e54420f146839691036000f';
+    const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '9xFxjdwfxE8ylWOyVGID12EyMxXIVmJYgJKuLeBc';
     
     if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
       console.error('❌ Thiếu cấu hình Cloudflare Images API');
