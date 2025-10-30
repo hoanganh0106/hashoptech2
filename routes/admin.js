@@ -213,8 +213,14 @@ router.post('/test-cloudflare', authenticateToken, requireAdmin, async (req, res
           case 10011:
             errorMessage = 'Không có quyền truy cập Cloudflare Images';
             break;
+          case 9109:
+            errorMessage = 'Account ID không hợp lệ hoặc không tồn tại';
+            break;
+          case 10000:
+            errorMessage = 'Lỗi xác thực - Token không đúng hoặc không có quyền';
+            break;
           default:
-            errorMessage = `Lỗi Cloudflare: ${error.message}`;
+            errorMessage = `Lỗi Cloudflare (${error.code}): ${error.message}`;
         }
       }
       
