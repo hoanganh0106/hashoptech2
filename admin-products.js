@@ -225,7 +225,7 @@ function getProductFormHTML(product = null) {
 }
 
 /**
- * Upload ảnh
+ * Upload ảnh lên Cloudflare Images
  */
 async function uploadProductImage() {
     const fileInput = document.getElementById('productImage');
@@ -236,9 +236,16 @@ async function uploadProductImage() {
         return;
     }
 
-    // Kiểm tra kích thước file (tối đa 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-        showNotification('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB', 'error');
+    // Kiểm tra kích thước file (tối đa 10MB cho Cloudflare Images)
+    if (file.size > 10 * 1024 * 1024) {
+        showNotification('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB', 'error');
+        return;
+    }
+
+    // Kiểm tra loại file
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        showNotification('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP)', 'error');
         return;
     }
 
@@ -253,9 +260,10 @@ async function uploadProductImage() {
     formData.append('image', file);
 
     try {
-        showNotification('Đang upload ảnh...', 'info');
+        showNotification('Đang upload ảnh lên Cloudflare Images...', 'info');
 
-        const response = await fetch(`${getApiBase()}/products/upload`, {
+        // Gọi API upload Cloudflare Images
+        const response = await fetch(`${getApiBase()}/products/upload-cloudflare`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
@@ -263,23 +271,9 @@ async function uploadProductImage() {
             body: formData
         });
 
-        // Kiểm tra response status
-        if (!response.ok) {
-            const errorText = await response.text();
-            let errorMessage = 'Lỗi upload ảnh';
-            try {
-                const errorData = JSON.parse(errorText);
-                errorMessage = errorData.error || errorMessage;
-            } catch (e) {
-                errorMessage = `Lỗi ${response.status}: ${errorText || response.statusText}`;
-            }
-            showNotification(errorMessage, 'error');
-            console.error('Upload error:', response.status, errorText);
-            return;
-        }
-
         const data = await response.json();
 
+        // Kiểm tra kết quả
         if (data.success && data.imageUrl) {
             const imageUrlInput = document.getElementById('productImageUrl');
             const imagePreview = document.getElementById('imagePreview');
@@ -294,12 +288,13 @@ async function uploadProductImage() {
                 `;
             }
             
-            showNotification('Upload ảnh thành công!', 'success');
+            showNotification('Upload ảnh lên Cloudflare Images thành công!', 'success');
+            console.log('✅ Cloudflare Image URL:', data.imageUrl);
         } else {
             showNotification('Lỗi upload: ' + (data.error || 'Không nhận được URL ảnh'), 'error');
         }
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('Upload Cloudflare error:', error);
         showNotification('Không thể upload ảnh: ' + error.message, 'error');
     }
 }

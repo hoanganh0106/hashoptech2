@@ -4,6 +4,9 @@ const router = express.Router();
 const config = require('../config');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const uploadCloudflare = require('../middleware/upload-cloudflare');
+const FormData = require('form-data');
+const fetch = require('node-fetch');
 
 // Import Models
 const Product = require('../models/Product');
@@ -242,6 +245,130 @@ router.post('/upload', authenticateToken, requireAdmin, (req, res) => {
       res.status(500).json({ error: 'Lỗi upload ảnh: ' + error.message });
     }
   });
+});
+
+/**
+ * POST /api/products/upload-cloudflare - Upload ảnh lên Cloudflare Images (admin only)
+ */
+router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudflare.single('image'), async (req, res) => {
+  try {
+    // Kiểm tra file upload (multer single file)
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Không có file được upload. Vui lòng chọn file ảnh.' 
+      });
+    }
+
+    const file = req.file;
+    
+    // Kiểm tra kích thước file (tối đa 10MB cho Cloudflare Images)
+    if (file.size > 10 * 1024 * 1024) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'File quá lớn! Kích thước tối đa là 10MB' 
+      });
+    }
+
+    // Kiểm tra loại file
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP)' 
+      });
+    }
+
+    // Cấu hình Cloudflare Images API
+    const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+    
+    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
+      console.error('❌ Thiếu cấu hình Cloudflare Images API');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Server chưa được cấu hình Cloudflare Images API' 
+      });
+    }
+
+    // Tạo FormData để gửi lên Cloudflare
+    const formData = new FormData();
+    formData.append('file', file.data, {
+      filename: file.name,
+      contentType: file.mimetype
+    });
+
+    // Gọi API Cloudflare Images
+    const cloudflareResponse = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          ...formData.getHeaders()
+        },
+        body: formData
+      }
+    );
+
+    const cloudflareData = await cloudflareResponse.json();
+
+    // Kiểm tra phản hồi từ Cloudflare
+    if (!cloudflareResponse.ok) {
+      console.error('❌ Cloudflare API Error:', cloudflareData);
+      
+      // Xử lý các lỗi cụ thể
+      if (cloudflareData.errors && cloudflareData.errors.length > 0) {
+        const error = cloudflareData.errors[0];
+        if (error.code === 10009) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Token Cloudflare không hợp lệ hoặc đã hết hạn' 
+          });
+        }
+        if (error.code === 10010) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Account ID Cloudflare không đúng' 
+          });
+        }
+        if (error.code === 10011) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'File không đúng định dạng ảnh' 
+          });
+        }
+        return res.status(400).json({ 
+          success: false, 
+          error: `Lỗi Cloudflare: ${error.message}` 
+        });
+      }
+      
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Lỗi upload lên Cloudflare Images' 
+      });
+    }
+
+    // Lấy URL CDN từ phản hồi
+    const imageUrl = cloudflareData.result.variants?.[0] || cloudflareData.result.id;
+    const fullImageUrl = `https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_ID}/${imageUrl}`;
+    
+    console.log('✅ Upload Cloudflare thành công:', fullImageUrl);
+    
+    res.json({
+      success: true,
+      imageUrl: fullImageUrl,
+      message: 'Upload ảnh lên Cloudflare Images thành công!'
+    });
+
+  } catch (error) {
+    console.error('❌ Upload Cloudflare error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Lỗi server khi upload ảnh: ' + error.message 
+    });
+  }
 });
 
 
