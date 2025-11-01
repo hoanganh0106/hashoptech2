@@ -5,10 +5,17 @@
     box-sizing: border-box;
 }
 
-/* Prevent horizontal scroll globally */
+/* Prevent horizontal scroll globally - nhưng cho phép trong category-products-scroll */
 html, body {
     overflow-x: hidden;
     max-width: 100%;
+}
+
+/* Cho phép horizontal scroll trong category-products-scroll */
+.category-products-scroll,
+.category-section,
+.products-grid {
+    position: relative;
 }
 
 /* Ensure all elements respect container width */
@@ -18,9 +25,8 @@ html, body {
 
 /* Additional mobile fixes */
 @media (max-width: 768px) {
-    /* Force all elements to not exceed viewport width */
+    /* Force all elements to not exceed viewport width - nhưng loại trừ category-products-scroll và product-card */
     * {
-        max-width: 100vw !important;
         box-sizing: border-box !important;
     }
     
@@ -28,6 +34,16 @@ html, body {
     body, html {
         overflow-x: hidden !important;
         max-width: 100vw !important;
+    }
+    
+    /* Loại trừ category-products-scroll khỏi max-width rule */
+    .category-products-scroll,
+    .category-products-scroll * {
+        max-width: none !important;
+    }
+    
+    .product-card {
+        max-width: 160px !important;
     }
 }
 
@@ -309,14 +325,12 @@ body {
     color: var(--dark-color);
 }
 
+/* Products Grid - Shopee Style */
 .products-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 180px); /* 6 cột desktop, cố định chiều rộng card để không bị phóng to */
-    gap: 1rem;
-    max-width: 100%;
-    justify-content: center; /* Căn giữa khi số sản phẩm ít */
-    justify-items: center;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem 0;
 }
 
 .product-description {
@@ -327,14 +341,16 @@ body {
     background: white;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
-    width: 100%;
-    max-width: 180px;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: auto;
 }
 
 .product-card:hover {
@@ -418,22 +434,23 @@ body {
 }
 
 .product-price {
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: var(--accent-color);
     text-align: center;
+    white-space: nowrap;
 }
 
 .btn-add-cart {
     background-color: var(--primary-color);
     color: white;
-    padding: 0.4rem 0.8rem;
+    padding: 0.35rem 0.7rem;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
-    transition: all 0.3s;
-    font-size: 0.8rem;
+    transition: all 0.2s;
+    font-size: 0.75rem;
     width: 100%;
     max-width: 100px;
 }
@@ -802,27 +819,7 @@ body {
 
 /* Responsive Design */
 
-/* Tablet - 4 sản phẩm mỗi hàng */
-@media (max-width: 1024px) and (min-width: 901px) {
-    .products-grid {
-        grid-template-columns: repeat(4, 180px); /* 4 cột tablet lớn */
-        gap: 1rem;
-        justify-content: center;
-        justify-items: center;
-    }
-}
-
-/* Tablet vừa: 3 cột */
-@media (max-width: 900px) and (min-width: 769px) {
-    .products-grid {
-        grid-template-columns: repeat(3, 180px);
-        gap: 0.875rem;
-        justify-content: center;
-        justify-items: center;
-    }
-}
-
-/* Mobile - 2 sản phẩm mỗi hàng */
+/* Mobile - Shopee Style Horizontal Scroll */
 @media (max-width: 768px) {
     .nav-menu {
         display: none;
@@ -836,21 +833,75 @@ body {
         font-size: 1rem;
     }
     
+    /* Products Grid Mobile - Shopee Style với horizontal scroll */
     .products-grid {
-        grid-template-columns: repeat(2, 160px); /* 2 cột mobile, cố định để không giãn quá mức */
-        gap: 0.75rem;
-        justify-content: center; /* Căn giữa hàng */
-        justify-items: center;
-        padding: 0 0.5rem;
+        gap: 2rem;
+        padding: 0.5rem 0;
     }
     
-    .product-card {
-        max-width: 160px; /* Khớp với track mobile */
+    .category-section {
+        margin-bottom: 2rem;
+    }
+    
+    .category-header {
+        padding: 0 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .category-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    
+    /* Horizontal Scroll Container cho Mobile - SHOPEE STYLE */
+    .category-products-scroll {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        gap: 0.75rem;
+        padding: 0 1rem 0.5rem 1rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+        align-items: flex-start;
         width: 100%;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        min-height: 0; /* Cho phép shrink */
+        max-width: 100vw;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    
+    .category-products-scroll::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    /* Đảm bảo container category-section không block scroll */
+    .category-section {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible !important;
+    }
+    
+    /* Đảm bảo products-grid không block scroll */
+    .products-grid {
+        overflow: visible !important;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* Card cố định kích thước trên mobile - SHOPEE STYLE */
+    .product-card {
+        width: 160px !important;
+        min-width: 160px !important;
+        max-width: 160px !important;
+        flex-shrink: 0 !important;
+        flex-grow: 0 !important;
+        scroll-snap-align: start;
+        height: auto;
+        display: flex !important;
+        flex-direction: column !important;
     }
     
     .product-card img {
@@ -858,60 +909,51 @@ body {
         aspect-ratio: 1;
         object-fit: contain;
         object-position: center;
-        background: #f8f9fa; /* Background cho khoảng trống */
+        background: #f8f9fa;
+        border-radius: 8px;
     }
     
     .product-image {
         width: 100%;
         aspect-ratio: 1;
-        font-size: 2rem;
+        font-size: 2.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        border-radius: 8px;
     }
     
     .product-info {
-        padding: 0.75rem;
+        padding: 0.6rem 0.5rem;
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
-        justify-content: space-between;
-        min-height: 0; /* Cho phép shrink */
-        overflow: hidden; /* Ngăn nội dung tràn ra ngoài */
-    }
-    
-    .product-category {
-        font-size: 0.7rem;
-        margin-bottom: 0.4rem;
-        text-align: center;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        line-height: 1.2;
+        gap: 0.4rem;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
     }
     
     .product-name {
         font-size: 0.85rem;
-        margin-bottom: 0.3rem;
-        text-align: center;
-        line-height: 1.3;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
+        height: 2.6em; /* 2 dòng với line-height 1.3 */
+        overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        overflow: hidden;
         text-overflow: ellipsis;
+        word-wrap: break-word;
+        line-height: 1.3;
+        margin: 0;
+        text-align: center;
     }
     
     .product-price {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        font-weight: 700;
         text-align: center;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
         white-space: nowrap;
+        margin: 0;
     }
     
     .product-footer {
@@ -920,7 +962,7 @@ body {
         align-items: center;
         gap: 0.5rem;
         margin-top: auto;
-        padding-top: 0.5rem;
+        padding-top: 0.4rem;
     }
     
     .btn-add-cart {
@@ -929,6 +971,7 @@ body {
         width: 100%;
         max-width: 140px;
         text-align: center;
+        min-height: 32px;
     }
     
     .cart-sidebar {
@@ -947,7 +990,7 @@ body {
     }
 }
 
-/* Mobile nhỏ - 2 sản phẩm mỗi hàng (tối ưu cho màn hình nhỏ hơn) */
+/* Mobile nhỏ (≤480px) */
 @media (max-width: 480px) {
     .hero {
         padding: 3rem 0;
@@ -957,19 +1000,28 @@ body {
         font-size: 1.75rem;
     }
     
-    .products-grid {
-        grid-template-columns: repeat(2, 150px); /* Mobile nhỏ hơn: card nhỏ hơn một chút */
-        gap: 0.5rem;
-        justify-content: center;
-        justify-items: center;
-        padding: 0 0.25rem;
+    .category-title {
+        font-size: 1.1rem;
     }
     
+    /* Card vẫn giữ kích thước cố định 160px */
     .product-card {
-        max-width: 150px;
-        width: 100%;
-        margin: 0;
-        min-height: 0;
+        width: 160px !important;
+        min-width: 160px !important;
+        max-width: 160px !important;
+    }
+    
+    .product-card .product-info {
+        padding: 0.5rem;
+    }
+    
+    .product-name {
+        font-size: 0.8rem;
+        height: 2.5em;
+    }
+    
+    .product-price {
+        font-size: 0.9rem;
     }
     
     .product-card img {
@@ -978,60 +1030,21 @@ body {
         object-fit: contain;
         object-position: center;
         background: #f8f9fa;
+        border-radius: 8px;
     }
     
     .product-image {
         width: 100%;
         aspect-ratio: 1;
-        font-size: 1.8rem;
+        font-size: 2rem;
         flex-shrink: 0;
-    }
-    
-    .product-info {
-        padding: 0.6rem;
-        overflow: hidden;
-        min-height: 0;
-    }
-    
-    .product-category {
-        font-size: 0.65rem;
-        margin-bottom: 0.3rem;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        line-height: 1.1;
-    }
-    
-    .product-name {
-        font-size: 0.8rem;
-        margin-bottom: 0.25rem;
-        line-height: 1.2;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .product-price {
-        font-size: 0.85rem;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: nowrap;
+        border-radius: 8px;
     }
     
     .btn-add-cart {
-        padding: 0.35rem 0.7rem;
         font-size: 0.7rem;
-        max-width: 120px;
-    }
-    
-    .product-footer {
-        gap: 0.4rem;
-        padding-top: 0.4rem;
+        padding: 0.35rem 0.7rem;
+        min-height: 30px;
     }
 }
 
@@ -1271,55 +1284,74 @@ html {
     align-items: center;
 }
 
+.category-count { display: none; }
+
+/* Category Section */
+.category-section {
+    margin-bottom: 2rem;
+}
+
 .category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     padding-bottom: 0.75rem;
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 2px solid var(--primary-color);
 }
 
 .category-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: var(--dark-color);
     margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    text-transform: capitalize;
 }
 
-.category-title::before {
-    content: '';
-    width: 4px;
-    height: 24px;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: 2px;
-}
-
-.category-count { display: none; }
-
-.category-products {
+/* Category Products Scroll Container - Desktop/Tablet Grid */
+.category-products-scroll {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.75rem;
+    gap: 1rem;
+    justify-content: start;
+    justify-items: start;
+    align-items: start;
+    width: 100%;
 }
 
-/* Product Card - Chỉ ảnh vuông */
+/* Desktop: 6 sản phẩm mỗi hàng */
+@media (min-width: 1024px) {
+    .category-products-scroll {
+        grid-template-columns: repeat(6, 160px);
+    }
+}
+
+/* Tablet: 3 sản phẩm mỗi hàng */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .category-products-scroll {
+        grid-template-columns: repeat(3, 160px);
+        justify-content: start;
+    }
+}
+
+/* Mobile: Horizontal Scroll (sẽ được override trong @media max-width: 768px) */
+
+/* Product Card - Kích thước cố định Shopee Style */
 .product-card {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
+    height: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 /* Product Image - Vuông với tùy chọn object-fit */
@@ -1360,15 +1392,28 @@ html {
 }
 
 .product-info {
-    padding: 0.75rem;
+    padding: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    gap: 0.4rem;
 }
 
 .product-name {
-    font-size: 1rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    margin: 0 0 0.4rem 0;
     color: var(--dark-color);
-    margin-bottom: 0.4rem;
-    line-height: 1.2;
+    text-align: center;
+    line-height: 1.3;
+    height: 2.6em; /* 2 dòng với line-height 1.3 */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
 }
 
 .product-description {
@@ -1648,10 +1693,6 @@ html {
         padding: 0.2rem 0.6rem;
     }
     
-    .category-products {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-    }
     
     /* Product card styles đã được định nghĩa ở phần responsive design chính */
     /* Không cần override lại ở đây để tránh conflict */
@@ -1681,12 +1722,25 @@ html {
         flex-shrink: 0;
     }
     
-    /* Ensure container doesn't overflow */
+    /* Ensure container doesn't overflow - nhưng cho phép scroll trong category-products-scroll */
     .container {
         padding: 0 10px; /* Further reduce padding on mobile */
         max-width: 100%;
         overflow-x: hidden;
         width: 100%;
+    }
+    
+    /* Cho phép horizontal scroll trong category-products-scroll */
+    .products-grid,
+    .category-section,
+    .category-products-scroll {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+    
+    .category-products-scroll {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
     }
     
     /* Fix any potential overflow issues */

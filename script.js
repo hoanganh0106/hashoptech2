@@ -68,16 +68,15 @@ function renderProducts() {
     // Nhóm sản phẩm theo category
     const groupedProducts = groupProductsByCategory(filteredProducts);
     
-    // Render từng nhóm category
+    // Render từng nhóm category - Shopee Style
     productsGrid.innerHTML = Object.keys(groupedProducts).map(category => {
         const products = groupedProducts[category];
         return `
             <div class="category-section">
                 <div class="category-header">
                     <h3 class="category-title">${category}</h3>
-                    
                 </div>
-                <div class="category-products">
+                <div class="category-products-scroll">
                     ${products.map(product => renderProductCard(product)).join('')}
                 </div>
             </div>
@@ -182,7 +181,7 @@ function renderProductCard(product) {
                 </div>
             `}
             <div class="product-info">
-                <h3 class="product-name">${product.name}</h3>
+                <h3 class="product-name" title="${product.name}">${product.name}</h3>
                 ${product.description ? `
                     <div class="product-description">
                         ${(() => {
@@ -206,7 +205,7 @@ function renderProductCard(product) {
                 ` : ''}
                 <div class="product-footer">
                     <div class="product-price">${priceDisplay}</div>
-                    <button class="btn btn-primary" onclick="event.stopPropagation(); showProductDetails('${product.id}')">
+                    <button class="btn btn-primary btn-add-cart" onclick="event.stopPropagation(); showProductDetails('${product.id}')">
                         Xem chi tiết
                     </button>
                 </div>

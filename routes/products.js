@@ -4,9 +4,6 @@ const router = express.Router();
 const config = require('../config');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const uploadCloudflare = require('../middleware/upload-cloudflare');
-const FormData = require('form-data');
-const axios = require('axios');
 
 // Import Models
 const Product = require('../models/Product');
@@ -227,157 +224,25 @@ router.post('/upload', authenticateToken, requireAdmin, (req, res) => {
       return res.status(400).json({ error: 'Lỗi upload file: ' + err.message });
     }
 
-    try {
-      if (!req.file) {
+  try {
+    if (!req.file) {
         return res.status(400).json({ error: 'Không có file được upload. Vui lòng chọn file ảnh.' });
-      }
+    }
 
-      const imageUrl = `/uploads/products/${req.file.filename}`;
+    const imageUrl = `/uploads/products/${req.file.filename}`;
       
       console.log('✅ Upload thành công:', imageUrl);
-      
-      res.json({
-        success: true,
-        imageUrl
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
+    
+    res.json({
+      success: true,
+      imageUrl
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
       res.status(500).json({ error: 'Lỗi upload ảnh: ' + error.message });
     }
   });
 });
-
-/**
- * POST /api/products/upload-cloudflare - Upload ảnh lên Cloudflare Images (admin only)
- */
-router.post('/upload-cloudflare', authenticateToken, requireAdmin, uploadCloudflare.single('image'), async (req, res) => {
-  try {
-    // Kiểm tra file upload (multer single file)
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Không có file được upload. Vui lòng chọn file ảnh.' 
-      });
-    }
-
-    const file = req.file;
-    
-    // Kiểm tra kích thước file (tối đa 10MB cho Cloudflare Images)
-    if (file.size > 10 * 1024 * 1024) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'File quá lớn! Kích thước tối đa là 10MB' 
-      });
-    }
-
-    // Kiểm tra loại file
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP)' 
-      });
-    }
-
-    // Cấu hình Cloudflare Images API
-    const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || 'e5dc4daf5e54420f146839691036000f';
-    const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN || '9xFxjdwfxE8ylWOyVGID12EyMxXIVmJYgJKuLeBc';
-    
-    if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
-      console.error('❌ Thiếu cấu hình Cloudflare Images API');
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Server chưa được cấu hình Cloudflare Images API' 
-      });
-    }
-
-    // Tạo FormData để gửi lên Cloudflare (multer memoryStorage => dùng buffer)
-    const formData = new FormData();
-    formData.append('file', file.buffer, {
-      filename: file.originalname,
-      contentType: file.mimetype
-    });
-
-    // Gọi API Cloudflare Images
-    const cloudflareResponse = await axios.post(
-      `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-      formData,
-      {
-        headers: {
-          'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
-          ...formData.getHeaders()
-        }
-      }
-    );
-
-    const cloudflareData = cloudflareResponse.data;
-
-    // Kiểm tra phản hồi từ Cloudflare
-    if (!cloudflareData.success) {
-      console.error('❌ Cloudflare API Error:', cloudflareData);
-      
-      // Xử lý các lỗi cụ thể
-      if (cloudflareData.errors && cloudflareData.errors.length > 0) {
-        const error = cloudflareData.errors[0];
-        if (error.code === 10009) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Token Cloudflare không hợp lệ hoặc đã hết hạn' 
-          });
-        }
-        if (error.code === 10010) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'Account ID Cloudflare không đúng' 
-          });
-        }
-        if (error.code === 10011) {
-          return res.status(400).json({ 
-            success: false, 
-            error: 'File không đúng định dạng ảnh' 
-          });
-        }
-        return res.status(400).json({ 
-          success: false, 
-          error: `Lỗi Cloudflare: ${error.message}` 
-        });
-      }
-      
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Lỗi upload lên Cloudflare Images' 
-      });
-    }
-
-    // Lấy URL CDN từ phản hồi
-    const variants = cloudflareData?.result?.variants;
-    if (!variants || variants.length === 0) {
-      console.error('❌ Không nhận được variants từ Cloudflare:', cloudflareData);
-      return res.status(500).json({
-        success: false,
-        error: 'Không nhận được URL ảnh từ Cloudflare (variants rỗng)'
-      });
-    }
-
-    const imageUrl = variants[0]; // URL đầy đủ từ Cloudflare (đã gồm account hash + variant)
-
-    console.log('✅ Upload Cloudflare thành công:', imageUrl);
-
-    res.json({
-      success: true,
-      imageUrl,
-      message: 'Upload ảnh lên Cloudflare Images thành công!'
-    });
-
-  } catch (error) {
-    console.error('❌ Upload Cloudflare error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Lỗi server khi upload ảnh: ' + error.message 
-    });
-  }
-});
-
 
 /**
  * GET /api/products/:productId/stock - Lấy số lượng tài khoản còn trong kho (admin only)

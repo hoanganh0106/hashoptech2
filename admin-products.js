@@ -39,32 +39,64 @@ async function loadProductsNew() {
         }
 
         if (data.success && data.products.length > 0) {
-            grid.innerHTML = data.products.map(product => {
-                const minPrice = product.variants.length > 0 
-                    ? Math.min(...product.variants.map(v => v.price))
-                    : product.price;
-                
+            // Nhóm sản phẩm theo category
+            const groupedProducts = {};
+            data.products.forEach(product => {
+                const category = product.category || 'Khác';
+                if (!groupedProducts[category]) {
+                    groupedProducts[category] = [];
+                }
+                groupedProducts[category].push(product);
+            });
+            
+            // Sắp xếp categories
+            const sortedCategories = Object.keys(groupedProducts).sort();
+            
+            // Render theo Shopee-style: mỗi category một section với horizontal scroll
+            grid.innerHTML = sortedCategories.map(category => {
+                const products = groupedProducts[category];
                 return `
-                    <div class="product-card-admin">
-                        ${product.image_url ? `
-                            <img src="${product.image_url}" alt="${product.name}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; margin-bottom:1rem;">
-                        ` : `
-                            <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">${product.icon || '📦'}</div>
-                        `}
-                        <div class="product-category" style="color: var(--primary-color); font-size: 0.875rem; font-weight: 600;">${product.category}</div>
-                        <h3>${product.name}</h3>
-                        <p style="color: #666; font-size: 0.9rem;">${product.description}</p>
-                        <div class="product-price">Từ ${formatPrice(minPrice)}</div>
-                        <div style="font-size: 0.875rem; color: #666; margin: 0.5rem 0;">
-                            Kho: ${product.stock || 0}
+                    <div class="category-section-admin">
+                        <div class="category-header-admin">
+                            <h3 class="category-title-admin">${category}</h3>
                         </div>
-                        <div class="product-actions">
-                            <button class="btn btn-secondary" onclick="editProductNew('${product.id}')">
-                                <i class="fas fa-edit"></i> Sửa
-                            </button>
-                            <button class="btn btn-danger" onclick="deleteProductNew('${product.id}', '${product.name}')">
-                                <i class="fas fa-trash"></i> Xóa
-                            </button>
+                        <div class="category-products-scroll">
+                            ${products.map(product => {
+                                const minPrice = product.variants.length > 0 
+                                    ? Math.min(...product.variants.map(v => v.price))
+                                    : product.price;
+                                
+                                const priceDisplay = product.variants.length > 1
+                                    ? `Từ ${formatPrice(minPrice)}`
+                                    : formatPrice(minPrice);
+                                
+                                return `
+                                    <div class="product-card-admin">
+                                        ${product.image_url ? `
+                                            <img src="${product.image_url}" alt="${product.name}" style="width:100%; aspect-ratio:1; object-fit:${product.image_fit || 'contain'}; object-position:center;">
+                                        ` : `
+                                            <div class="product-image">
+                                                <span style="font-size: 3rem;">${product.icon || '📦'}</span>
+                                            </div>
+                                        `}
+                                        <div class="product-info">
+                                            <h3 class="product-name" title="${product.name}">${product.name}</h3>
+                                            <div class="product-stock">Kho: ${product.stock || 0}</div>
+                                            <div class="product-footer">
+                                                <div class="product-price">${priceDisplay}</div>
+                                                <div class="product-actions">
+                                                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editProductNew('${product.id}')">
+                                                        <i class="fas fa-edit"></i> Sửa
+                                                    </button>
+                                                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteProductNew('${product.id}', '${product.name}')">
+                                                        <i class="fas fa-trash"></i> Xóa
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `;
@@ -236,9 +268,9 @@ async function uploadProductImage() {
         return;
     }
 
-    // Kiểm tra kích thước file (tối đa 10MB cho Cloudflare Images)
-    if (file.size > 10 * 1024 * 1024) {
-        showNotification('File quá lớn! Vui lòng chọn file nhỏ hơn 10MB', 'error');
+    // Kiểm tra kích thước file (tối đa 5MB cho upload local)
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB', 'error');
         return;
     }
 
@@ -260,10 +292,10 @@ async function uploadProductImage() {
     formData.append('image', file);
 
     try {
-        showNotification('Đang upload ảnh lên Cloudflare Images...', 'info');
+        showNotification('Đang upload ảnh lên server...', 'info');
 
-        // Gọi API upload Cloudflare Images
-        const response = await fetch(`${getApiBase()}/products/upload-cloudflare`, {
+        // Gọi API upload local (ảnh sẽ được Cloudflare CDN cache tự động)
+        const response = await fetch(`${getApiBase()}/products/upload`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getAuthToken()}`
@@ -288,13 +320,13 @@ async function uploadProductImage() {
                 `;
             }
             
-            showNotification('Upload ảnh lên Cloudflare Images thành công!', 'success');
-            console.log('✅ Cloudflare Image URL:', data.imageUrl);
+            showNotification('Upload ảnh thành công! (CDN sẽ tự động cache)', 'success');
+            console.log('✅ Image URL:', data.imageUrl);
         } else {
             showNotification('Lỗi upload: ' + (data.error || 'Không nhận được URL ảnh'), 'error');
         }
     } catch (error) {
-        console.error('Upload Cloudflare error:', error);
+        console.error('Upload error:', error);
         showNotification('Không thể upload ảnh: ' + error.message, 'error');
     }
 }

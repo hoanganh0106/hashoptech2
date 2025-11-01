@@ -355,99 +355,180 @@ input, textarea, select {
     margin: 0;
 }
 
-/* Products Grid */
+/* Products Grid - Shopee Style */
 .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 1rem 0;
 }
 
+/* Category Section */
+.category-section-admin {
+    margin-bottom: 2rem;
+}
+
+.category-header-admin {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.category-title-admin {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dark-color);
+    margin: 0;
+    text-transform: capitalize;
+}
+
+/* Category Products Scroll Container - Desktop Grid */
+.category-products-scroll {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 160px);
+    gap: 1rem;
+    justify-content: start;
+    justify-items: start;
+    align-items: start;
+}
+
+/* Desktop - Grid layout cố định kích thước card */
+@media (min-width: 769px) {
+    .category-products-scroll {
+        grid-template-columns: repeat(auto-fill, 160px);
+        justify-content: start;
+    }
+}
+
+/* Product Card Admin */
 .product-card-admin {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+    width: 160px;
+    min-width: 160px;
+    max-width: 160px;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: auto;
 }
 
 .product-card-admin:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .product-card-admin img {
     width: 100%;
     aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 1rem;
+    object-position: center;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
 }
 
-.product-card-admin div[style*="font-size: 3rem"] {
+.product-image {
     width: 100%;
     aspect-ratio: 1;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    border-radius: 8px;
-    margin-bottom: 1rem;
+    color: white;
+    flex-shrink: 0;
 }
 
 .product-card-admin .product-info {
-    padding: 1rem;
-    flex: 1;
+    padding: 0.6rem;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    flex: 1;
 }
 
-.product-card-admin h3 {
-    font-size: 1.1rem;
+.product-card-admin .product-name {
+    font-size: 0.85rem;
     font-weight: 600;
+    margin: 0 0 0.4rem 0;
     color: var(--dark-color);
+    text-align: center;
+    line-height: 1.3;
+    height: 2.6em; /* 2 dòng với line-height 1.3 */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+}
+
+.product-card-admin .product-stock {
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
     margin-bottom: 0.5rem;
 }
 
-.product-card-admin p {
-    display: none; /* Ẩn mô tả sản phẩm */
+.product-card-admin .product-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
 }
 
 .product-card-admin .product-price {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    color: var(--primary-color);
-    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+    text-align: center;
+    white-space: nowrap;
 }
 
 .product-card-admin .product-actions {
     display: flex;
-    gap: 0.5rem;
-    margin-top: auto; /* Đẩy actions xuống dưới cùng */
+    gap: 0.4rem;
+    width: 100%;
 }
 
 .product-card-admin .product-actions .btn {
     flex: 1;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.85rem;
-}
-
-.product-card-admin .product-category {
-    color: var(--primary-color);
-    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    transition: all 0.2s;
 }
 
-.product-card-admin div[style*="font-size: 0.875rem"][style*="color: #666"] {
-    font-size: 0.8rem;
-    color: #666;
-    margin: 0.25rem 0;
+.product-card-admin .product-actions .btn-sm {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+}
+
+.product-card-admin .product-actions .btn-secondary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.product-card-admin .product-actions .btn-secondary:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.03);
+}
+
+.product-card-admin .product-actions .btn-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.product-card-admin .product-actions .btn-danger:hover {
+    background-color: #dc2626;
+    transform: scale(1.03);
 }
 
 /* Fit-to-Frame Crop Editor Styles */
@@ -1078,10 +1159,12 @@ input, textarea, select {
         font-size: 1.5rem;
     }
     
-    /* Products Grid */
+    /* Products Grid - Giữ nguyên kích thước nhỏ */
     .products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
+        grid-template-columns: repeat(2, 160px);
+        gap: 0.75rem;
+        justify-content: center;
+        justify-items: center;
     }
     
     .product-card {
@@ -1211,7 +1294,10 @@ input, textarea, select {
     }
     
     .products-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 180px);
+        gap: 1rem;
+        justify-content: center;
+        justify-items: center;
     }
     
     .settings-container {
@@ -1222,7 +1308,10 @@ input, textarea, select {
 /* Large Desktop */
 @media (min-width: 1200px) {
     .products-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(6, 180px);
+        gap: 1rem;
+        justify-content: center;
+        justify-items: center;
     }
     
     .settings-container {
@@ -1367,5 +1456,116 @@ input, textarea, select {
     
     .search-stats {
         font-size: 0.8rem;
+    }
+    
+    /* Products Grid Mobile - Shopee Style với horizontal scroll */
+    .products-grid {
+        gap: 1.5rem;
+        padding: 0.5rem 0;
+    }
+    
+    .category-section-admin {
+        margin-bottom: 1.5rem;
+    }
+    
+    .category-header-admin {
+        padding: 0 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .category-title-admin {
+        font-size: 1.1rem;
+    }
+    
+    /* Horizontal Scroll Container cho Mobile */
+    .category-products-scroll {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0.75rem;
+        padding: 0 1rem;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    .category-products-scroll::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    /* Card cố định kích thước trên mobile - 2 sản phẩm mỗi hàng */
+    .product-card-admin {
+        width: calc(50vw - 1.5rem); /* 2 card chiếm gần hết chiều ngang, trừ padding và gap */
+        min-width: calc(50vw - 1.5rem);
+        max-width: calc(50vw - 1.5rem);
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
+    
+    .product-card-admin .product-info {
+        padding: 0.5rem;
+    }
+    
+    .product-card-admin .product-name {
+        font-size: 0.8rem;
+        height: 2.34em; /* 2 dòng */
+    }
+    
+    .product-card-admin .product-stock {
+        font-size: 0.65rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .product-card-admin .product-price {
+        font-size: 0.85rem;
+    }
+    
+    .product-card-admin .product-actions .btn {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.7rem;
+    }
+    
+    .product-image {
+        font-size: 2rem;
+    }
+}
+
+/* Mobile nhỏ (≤480px) */
+@media (max-width: 480px) {
+    .category-title-admin {
+        font-size: 1rem;
+    }
+    
+    .product-card-admin {
+        width: calc(50vw - 1.25rem);
+        min-width: calc(50vw - 1.25rem);
+        max-width: calc(50vw - 1.25rem);
+    }
+    
+    .product-card-admin .product-info {
+        padding: 0.45rem;
+    }
+    
+    .product-card-admin .product-name {
+        font-size: 0.75rem;
+        height: 2.25em;
+    }
+    
+    .product-card-admin .product-stock {
+        font-size: 0.6rem;
+    }
+    
+    .product-card-admin .product-price {
+        font-size: 0.8rem;
+    }
+    
+    .product-card-admin .product-actions .btn {
+        padding: 0.25rem 0.35rem;
+        font-size: 0.65rem;
+    }
+    
+    .product-image {
+        font-size: 1.8rem;
     }
 }
