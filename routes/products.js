@@ -312,7 +312,7 @@ router.get('/:productId/stock', authenticateToken, requireAdmin, async (req, res
 router.post('/:productId/stock', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { productId } = req.params;
-    const { variantName, accounts, stockType } = req.body;
+    const { variantName, accounts } = req.body;
 
     // Validate
     if (!variantName || !accounts || !Array.isArray(accounts) || accounts.length === 0) {
@@ -343,14 +343,11 @@ router.post('/:productId/stock', authenticateToken, requireAdmin, async (req, re
     // Tạo các account
     const accountDocs = accounts.map(acc => ({
       productId,
-      productName: product.name,
       variantName: variantName,
-      price: variant.price,
       username: acc.username || acc.account || '',
       password: acc.password || '',
       additionalInfo: acc.additionalInfo || acc.note || '',
-      status: 'available',
-      stockType: stockType || 'available'
+      status: 'available'
     }));
 
     const createdAccounts = await Account.insertMany(accountDocs);
