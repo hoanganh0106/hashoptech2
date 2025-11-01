@@ -2,6 +2,7 @@
 
 # Script tự động deploy HaShopTech lên EC2
 # Sử dụng: ./deploy.sh
+# Hoặc: bash deploy.sh
 
 set -e  # Dừng nếu có lỗi
 
@@ -31,25 +32,47 @@ if [[ -n $(git status -s) ]]; then
     fi
 fi
 
+# Lưu commit hiện tại để so sánh
+OLD_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
+
 # Pull code mới nhất
 echo -e "${BLUE}📥 Pull code mới nhất từ GitHub...${NC}"
+git fetch origin
 git pull origin main || git pull origin master
 
-# Cài đặt dependencies
-echo -e "${BLUE}📦 Cài đặt dependencies...${NC}"
-npm install --production
+# Kiểm tra xem có code mới không
+NEW_COMMIT=$(git rev-parse HEAD 2>/dev/null || echo "")
+if [ "$OLD_COMMIT" == "$NEW_COMMIT" ] && [ -n "$OLD_COMMIT" ]; then
+    echo -e "${YELLOW}ℹ️  Không có code mới, đang restart server...${NC}"
+else
+    echo -e "${GREEN}✅ Đã pull code mới${NC}"
+    echo -e "${BLUE}   Commit cũ: ${OLD_COMMIT:0:7}${NC}"
+    echo -e "${BLUE}   Commit mới: ${NEW_COMMIT:0:7}${NC}"
+    
+    # Cài đặt dependencies nếu có thay đổi
+    if git diff --name-only $OLD_COMMIT $NEW_COMMIT | grep -q "package.json\|package-lock.json"; then
+        echo -e "${BLUE}📦 Cài đặt dependencies...${NC}"
+        npm install --production
+    else
+        echo -e "${BLUE}ℹ️  Không có thay đổi dependencies, bỏ qua npm install${NC}"
+    fi
+fi
 
 # Kiểm tra file .env
 if [ ! -f .env ]; then
     echo -e "${RED}❌ Không tìm thấy file .env!${NC}"
-    echo -e "${YELLOW}📝 Tạo file .env từ .env.example...${NC}"
-    cp .env.example .env
+    if [ -f .env.example ]; then
+        echo -e "${YELLOW}📝 Tạo file .env từ .env.example...${NC}"
+        cp .env.example .env
+    fi
     echo -e "${YELLOW}⚠️  Vui lòng chỉnh sửa file .env với thông tin thực của bạn!${NC}"
     exit 1
 fi
 
-# Tạo thư mục logs nếu chưa có
+# Tạo thư mục logs và uploads nếu chưa có
 mkdir -p logs
+mkdir -p uploads/products
+mkdir -p uploads/icons
 
 # Kiểm tra PM2
 if ! command -v pm2 &> /dev/null; then
@@ -67,6 +90,9 @@ else
     pm2 start ecosystem.config.js
     pm2 save
 fi
+
+# Đợi một chút để app khởi động
+sleep 2
 
 # Hiển thị trạng thái
 echo ""
