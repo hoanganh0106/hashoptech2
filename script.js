@@ -840,7 +840,7 @@ function showNotification(message, type = 'info') {
 
     Object.assign(notification.style, {
         position: 'fixed',
-        top: '20px',
+        top: '80px', // Di chuyển xuống dưới để không che cart icon
         right: '20px',
         backgroundColor: colors[type] || colors.info,
         color: 'white',
