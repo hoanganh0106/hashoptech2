@@ -95,22 +95,36 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { name, description, imageUrl, imageFit, category, variants } = req.body;
 
-    if (!name || !description) {
-      return res.status(400).json({ error: 'Thiếu thông tin sản phẩm' });
+    // Validation: name là bắt buộc, description có thể để trống
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Vui lòng nhập tên sản phẩm' });
     }
 
     if (!variants || variants.length === 0) {
       return res.status(400).json({ error: 'Sản phẩm phải có ít nhất 1 gói' });
     }
+    
+    // Validate variants có đầy đủ thông tin
+    for (const variant of variants) {
+      if (!variant.name || variant.name.trim() === '') {
+        return res.status(400).json({ error: 'Tên gói không được để trống' });
+      }
+      if (!variant.price || parseFloat(variant.price) <= 0) {
+        return res.status(400).json({ error: 'Giá gói phải lớn hơn 0' });
+      }
+      if (!variant.duration_value || parseInt(variant.duration_value) <= 0) {
+        return res.status(400).json({ error: 'Thời gian gói phải lớn hơn 0' });
+      }
+    }
 
     const product = new Product({
-      name,
-      description,
+      name: name.trim(),
+      description: description || '',
       imageUrl: imageUrl || '',
       imageFit: imageFit || 'cover',
       category: category || 'other',
       variants: variants.map(v => ({
-        name: v.name,
+        name: v.name.trim(),
         description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
@@ -148,17 +162,39 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Không tìm thấy sản phẩm' });
     }
 
+    // Validation: name là bắt buộc nếu có update
+    if (name !== undefined && (!name || name.trim() === '')) {
+      return res.status(400).json({ error: 'Vui lòng nhập tên sản phẩm' });
+    }
+
     // Update fields
-    if (name) product.name = name;
-    if (description) product.description = description;
-    if (imageUrl !== undefined) product.imageUrl = imageUrl;
+    if (name !== undefined) product.name = name.trim();
+    if (description !== undefined) product.description = description || '';
+    if (imageUrl !== undefined) product.imageUrl = imageUrl || '';
     if (imageFit !== undefined) product.imageFit = imageFit;
-    if (category) product.category = category;
+    if (category !== undefined) product.category = category || 'other';
     if (isActive !== undefined) product.isActive = isActive;
     
     if (variants) {
+      // Validate variants
+      if (variants.length === 0) {
+        return res.status(400).json({ error: 'Sản phẩm phải có ít nhất 1 gói' });
+      }
+      
+      for (const variant of variants) {
+        if (!variant.name || variant.name.trim() === '') {
+          return res.status(400).json({ error: 'Tên gói không được để trống' });
+        }
+        if (!variant.price || parseFloat(variant.price) <= 0) {
+          return res.status(400).json({ error: 'Giá gói phải lớn hơn 0' });
+        }
+        if (!variant.duration_value || parseInt(variant.duration_value) <= 0) {
+          return res.status(400).json({ error: 'Thời gian gói phải lớn hơn 0' });
+        }
+      }
+      
       product.variants = variants.map(v => ({
-        name: v.name,
+        name: v.name.trim(),
         description: v.description || '',
         price: parseFloat(v.price) || 0,
         duration_value: parseInt(v.duration_value) || 1,
