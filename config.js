@@ -28,7 +28,12 @@ module.exports = {
   // Telegram Bot Configuration
   telegram: {
     botToken: process.env.TELEGRAM_BOT_TOKEN,
-    chatId: process.env.TELEGRAM_CHAT_ID
+    // Hỗ trợ nhiều chat IDs, cách nhau bằng dấu phẩy
+    chatId: process.env.TELEGRAM_CHAT_ID,
+    // Parse nhiều chat IDs từ string (format: "123456789,987654321")
+    chatIds: process.env.TELEGRAM_CHAT_ID 
+      ? process.env.TELEGRAM_CHAT_ID.split(',').map(id => id.trim()).filter(id => id)
+      : []
   },
 
   // Database - MongoDB

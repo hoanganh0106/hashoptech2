@@ -5,28 +5,43 @@ const config = require('../config');
 class TelegramService {
   constructor() {
     this.botToken = config.telegram.botToken;
-    this.chatId = config.telegram.chatId;
+    this.chatIds = config.telegram.chatIds || [];
+    // Fallback cho chatId cũ (single)
+    if (this.chatIds.length === 0 && config.telegram.chatId) {
+      this.chatIds = [config.telegram.chatId];
+    }
     this.apiUrl = `https://api.telegram.org/bot${this.botToken}`;
   }
 
   /**
-   * Gửi tin nhắn text đơn giản
+   * Gửi tin nhắn text đơn giản cho tất cả chat IDs
    */
   async sendMessage(message) {
     try {
-      if (!this.botToken || !this.chatId || this.botToken === 'your-telegram-bot-token') {
+      if (!this.botToken || this.chatIds.length === 0 || this.botToken === 'your-telegram-bot-token') {
         console.log('⚠️  Telegram chưa được cấu hình');
         return null;
       }
 
-      const response = await axios.post(`${this.apiUrl}/sendMessage`, {
-        chat_id: this.chatId,
-        text: message,
-        parse_mode: 'HTML'
-      });
+      // Gửi tin nhắn cho tất cả chat IDs
+      const results = [];
+      for (const chatId of this.chatIds) {
+        try {
+          const response = await axios.post(`${this.apiUrl}/sendMessage`, {
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+          });
+          results.push({ chatId, success: true, data: response.data });
+        } catch (error) {
+          console.error(`❌ Lỗi gửi Telegram cho chatId ${chatId}:`, error.response?.data || error.message);
+          results.push({ chatId, success: false, error: error.message });
+        }
+      }
 
-      console.log('✅ Đã gửi thông báo Telegram');
-      return response.data;
+      const successCount = results.filter(r => r.success).length;
+      console.log(`✅ Đã gửi thông báo Telegram (${successCount}/${this.chatIds.length} thành công)`);
+      return results;
     } catch (error) {
       console.error('❌ Lỗi gửi Telegram:', error.response?.data || error.message);
       return null;

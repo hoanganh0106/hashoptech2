@@ -158,6 +158,30 @@ router.get('/version', (req, res) => {
   }
 });
 
+/**
+ * GET /api/test/telegram-chat-id - Hướng dẫn lấy Chat ID cho cộng tác viên
+ */
+router.get('/telegram-chat-id', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Hướng dẫn lấy Telegram Chat ID',
+    instructions: [
+      '1. Yêu cầu cộng tác viên tìm bot @userinfobot trên Telegram',
+      '2. Gửi bất kỳ tin nhắn nào cho bot @userinfobot',
+      '3. Bot sẽ trả về Chat ID của họ (dạng số, ví dụ: 123456789)',
+      '4. Copy Chat ID đó và thêm vào file .env',
+      '5. Format trong .env: TELEGRAM_CHAT_ID="123456789,987654321" (cách nhau bằng dấu phẩy)',
+      '',
+      'Hoặc dùng cách khác:',
+      '- Tìm bot @getidsbot trên Telegram',
+      '- Gửi /start cho bot',
+      '- Bot sẽ trả về Chat ID của bạn',
+      '',
+      'Sau khi thêm Chat ID vào .env, restart server để áp dụng thay đổi.'
+    ]
+  });
+});
+
 module.exports = router;
 
 
