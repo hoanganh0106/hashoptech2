@@ -145,19 +145,6 @@ async function cancelExpiredOrders() {
       await order.save();
       
       console.log(`❌ Đã hủy đơn hàng: ${order.orderCode}`);
-      
-      // Gửi thông báo Telegram cho admin
-      await telegramService.sendMessage(
-        `❌ ĐƠN HÀNG TỰ ĐỘNG HỦY\n\n` +
-        `📦 Mã đơn hàng: ${order.orderCode}\n` +
-        `👤 Khách hàng: ${order.customerName}\n` +
-        `📧 Email: ${order.customerEmail}\n` +
-        `📱 SĐT: ${order.customerPhone || 'N/A'}\n` +
-        `💰 Tổng tiền: ${order.totalAmount.toLocaleString()}đ\n` +
-        `⏰ Thời gian tạo: ${order.createdAt.toLocaleString('vi-VN')}\n` +
-        `📝 Lý do: Quá hạn thanh toán (${expirationHours} giờ)\n\n` +
-        `Hệ thống tự động hủy đơn hàng quá hạn.`
-      );
     }
     
     console.log(`✅ Đã xử lý ${expiredOrders.length} đơn hàng quá hạn`);
