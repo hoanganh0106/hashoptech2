@@ -261,10 +261,15 @@ function showProductDetails(productId) {
                             <label class="variant-option ${index === 0 ? 'selected' : ''}" style="display: flex; align-items: center; padding: 1rem; border: 2px solid ${index === 0 ? 'var(--primary-color)' : '#e2e8f0'}; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
                                 <input type="radio" name="variant" value="${variant.id || index}" ${index === 0 ? 'checked' : ''} style="margin-right: 1rem;" onchange="selectVariant('${productId}', ${index})">
                                 <div style="flex: 1;">
-                                    <div style="font-weight: 600; color: var(--dark-color);">${variant.name}</div>
-                                    <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
-                                        ${variant.description ? variant.description + ' • ' : ''}⏱️ ${durationText}
+                                    <div style="font-weight: 600; color: var(--dark-color); margin-bottom: 0.25rem;">${variant.name}</div>
+                                    <div style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 0.25rem;">
+                                        ⏱️ ${durationText}
                                     </div>
+                                    ${variant.description ? `
+                                        <div style="font-size: 0.85rem; color: #888;">
+                                            ${variant.description}
+                                        </div>
+                                    ` : ''}
                                 </div>
                                 <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">
                                     ${formatPrice(variant.price)}
