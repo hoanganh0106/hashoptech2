@@ -43,11 +43,32 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(limiter);
 
-// Serve static files
-app.use(express.static('.'));
+// Serve static files với cache headers cho Cloudflare
+app.use(express.static('.', {
+  // Set cache headers để tránh Cloudflare cache quá lâu
+  setHeaders: (res, path) => {
+    // CSS và JS files - cache ngắn với versioning
+    if (path.endsWith('.css') || path.endsWith('.js')) {
+      res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate'); // 1 giờ
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+    // HTML files - no cache để luôn load mới nhất
+    else if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+    // Images - cache lâu hơn
+    else if (path.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 ngày
+    }
+  }
+}));
 
 // Serve uploads folder
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1d' // Cache uploads 1 ngày
+}));
 
 
 // API Routes
