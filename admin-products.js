@@ -338,8 +338,8 @@ function addVariant() {
     const variant = {
         id: Date.now(),
         name: '',
-        duration_value: 1,
-        duration_unit: 'month',
+        duration_value: 1, // Giá trị mặc định (không hiển thị trong form)
+        duration_unit: 'month', // Giá trị mặc định (không hiển thị trong form)
         price: 0,
         description: '',
         stockType: 'available'
@@ -381,21 +381,11 @@ function renderVariants() {
                     <label style="font-size:0.875rem; font-weight:600;">Giá (VNĐ) *</label>
                     <input type="number" class="form-input variant-price" data-index="${index}" value="${v.price}" placeholder="50000" required>
                 </div>
-
-                <div>
-                    <label style="font-size:0.875rem; font-weight:600;">Thời gian *</label>
-                    <input type="number" class="form-input variant-duration" data-index="${index}" value="${v.duration_value}" min="1" required>
-                </div>
-
-                <div>
-                    <label style="font-size:0.875rem; font-weight:600;">Đơn vị *</label>
-                    <select class="form-input variant-unit" data-index="${index}">
-                        <option value="day" ${v.duration_unit === 'day' ? 'selected' : ''}>Ngày</option>
-                        <option value="month" ${v.duration_unit === 'month' ? 'selected' : ''}>Tháng</option>
-                        <option value="year" ${v.duration_unit === 'year' ? 'selected' : ''}>Năm</option>
-                    </select>
-                </div>
             </div>
+            
+            <!-- Hidden fields cho duration (không hiển thị vì frontend không dùng) -->
+            <input type="hidden" class="variant-duration" data-index="${index}" value="${v.duration_value || 1}">
+            <input type="hidden" class="variant-unit" data-index="${index}" value="${v.duration_unit || 'month'}">
 
             <div style="margin-top:1rem;">
                 <label style="font-size:0.875rem; font-weight:600;">Mô tả gói</label>
