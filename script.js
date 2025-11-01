@@ -397,13 +397,15 @@ async function addToCart(productId, variant = null, event = null) {
             return;
         }
         
-        // Handle different stock types
+        // Handle different stock types - cho phép thêm vào giỏ ngay cả khi hết hàng
         if (stockData.stockType === 'contact') {
-            showNotification('📞 Sản phẩm này cần liên hệ trực tiếp để đặt hàng!', 'warning');
-            return;
+            // Cho phép thêm vào giỏ nhưng cảnh báo
+            showNotification('📞 Sản phẩm này cần liên hệ trực tiếp. Bạn vẫn có thể đặt hàng, thông tin tài khoản sẽ được gửi sau 30 phút (giờ làm việc 7h-00h) hoặc liên hệ trực tiếp để được hỗ trợ nhanh hơn.', 'warning');
+            // KHÔNG return - cho phép thêm vào giỏ hàng
         } else if (stockData.stockType === 'available' && !stockData.hasStock) {
-            showNotification('⚠️ Sản phẩm đã hết hàng! Vui lòng liên hệ trực tiếp để được hỗ trợ.', 'warning');
-            return;
+            // Cho phép thêm vào giỏ nhưng cảnh báo
+            showNotification('⚠️ Sản phẩm đã hết hàng. Bạn vẫn có thể đặt hàng, thông tin tài khoản sẽ được gửi sau 30 phút (giờ làm việc 7h-00h) hoặc liên hệ trực tiếp để được hỗ trợ nhanh hơn.', 'warning');
+            // KHÔNG return - cho phép thêm vào giỏ hàng
         } else if (stockData.stockType === 'available' && stockData.hasStock) {
             console.log('✅ Available product - stock check passed');
         }
@@ -532,23 +534,66 @@ function closeCheckoutModal() {
 }
 
 // Show Payment Info
-function showPaymentInfo(order, payment) {
+function showPaymentInfo(order, payment, deliveryInfo = null) {
     const modalBody = document.getElementById('modalBody');
     
     console.log('💳 Payment info:', payment);
+    console.log('📦 Delivery info:', deliveryInfo);
     
-    modalBody.innerHTML = `
-        <div style="text-align: center;">
-            <div style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">
-                ✅
+    // Tạo HTML cho thông báo sản phẩm hết hàng
+    let outOfStockHTML = '';
+    if (deliveryInfo && deliveryInfo.outOfStockItems && deliveryInfo.outOfStockItems.length > 0) {
+        let itemsHTML = '';
+        deliveryInfo.outOfStockItems.forEach(item => {
+            itemsHTML += `
+                <div style="background: #fef3c7; padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 0; color: #92400e;">
+                        <strong>${item.productName} - ${item.variantName}</strong><br>
+                        <small>Cần: ${item.requested} | Có sẵn: ${item.available}</small>
+                    </p>
+                </div>
+            `;
+        });
+        
+        outOfStockHTML = `
+            <div style="background: #fff7ed; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border: 2px solid #f59e0b;">
+                <h3 style="color: #92400e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>⚠️</span> Lưu ý về sản phẩm hết hàng
+                </h3>
+                <div style="margin-bottom: 1rem;">
+                    ${itemsHTML}
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 6px; margin-top: 1rem;">
+                    <p style="margin: 0.5rem 0; color: #92400e;">
+                        <strong>📦 Thời gian giao hàng dự kiến:</strong><br>
+                        <span style="font-size: 1.1rem; color: #dc2626;">${deliveryInfo.estimatedDeliveryTimeStr}</span>
+                    </p>
+                    <p style="margin: 0.5rem 0; color: #92400e; font-size: 0.9rem;">
+                        <strong>🕐 Giờ làm việc:</strong> ${deliveryInfo.workingHours}
+                    </p>
+                    <p style="margin: 1rem 0 0 0; color: #92400e; font-size: 0.9rem;">
+                        Hoặc liên hệ trực tiếp để được hỗ trợ nhanh hơn:
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <a href="https://t.me/hoanganh1162" target="_blank" style="flex: 1; padding: 8px 12px; background: #0088cc; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-size: 0.9rem;">
+                            📱 Telegram
+                        </a>
+                        <a href="https://facebook.com/HoangAnh.Sw" target="_blank" style="flex: 1; padding: 8px 12px; background: #1877f2; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-size: 0.9rem;">
+                            📘 Facebook
+                        </a>
+                    </div>
+                </div>
             </div>
-            <h2 style="margin-bottom: 1rem;">Đặt hàng thành công!</h2>
-            <p style="margin-bottom: 2rem;">
-                Mã đơn hàng: <strong>${order.order_code}</strong>
-            </p>
-        </div>
-
-        <div style="background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        `;
+    }
+    
+    // Nếu có deliveryInfo (có sản phẩm hết hàng), chia thành 2 bước
+    // Bước 1: Thông báo hết hàng
+    // Bước 2: QR code thanh toán (hiển thị sau khi bấm "Đã hiểu")
+    const hasDeliveryInfo = deliveryInfo && deliveryInfo.outOfStockItems && deliveryInfo.outOfStockItems.length > 0;
+    
+    const paymentSectionHTML = `
+        <div id="paymentSection" style="display: ${hasDeliveryInfo ? 'none' : 'block'}; background: #f8fafc; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
             <h3 style="margin-bottom: 1rem;">💳 Quét mã QR để thanh toán</h3>
             
             ${payment.qrCodeUrl ? `
@@ -582,17 +627,69 @@ function showPaymentInfo(order, payment) {
                 </p>
             </div>
         </div>
+    `;
+    
+    modalBody.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 4rem; color: #10b981; margin-bottom: 1rem;">
+                ✅
+            </div>
+            <h2 style="margin-bottom: 1rem;">Đặt hàng thành công!</h2>
+            <p style="margin-bottom: 2rem;">
+                Mã đơn hàng: <strong>${order.order_code}</strong>
+            </p>
+        </div>
 
-        <button class="btn btn-primary btn-block" onclick="closeModal()">
-            Đã hiểu
+        ${outOfStockHTML}
+
+        ${paymentSectionHTML}
+
+        <button class="btn btn-primary btn-block" id="understandBtn">
+            ${hasDeliveryInfo ? 'Đã hiểu' : 'Đóng'}
         </button>
     `;
+    
+    // Gắn sự kiện cho nút
+    const understandBtn = document.getElementById('understandBtn');
+    if (understandBtn) {
+        if (hasDeliveryInfo) {
+            understandBtn.addEventListener('click', showPaymentSection);
+        } else {
+            understandBtn.addEventListener('click', closeModal);
+        }
+    }
 
     document.getElementById('productModal').classList.add('active');
     
     // Start checking order status
     const customerEmail = document.getElementById('customerEmail').value;
     startOrderStatusCheck(order.order_code, customerEmail);
+}
+
+// Hàm hiển thị phần thanh toán sau khi bấm "Đã hiểu"
+function showPaymentSection() {
+    const paymentSection = document.getElementById('paymentSection');
+    const understandBtn = document.getElementById('understandBtn');
+    
+    if (paymentSection) {
+        paymentSection.style.display = 'block';
+        // Cuộn đến phần thanh toán
+        setTimeout(() => {
+            paymentSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+    
+    if (understandBtn) {
+        understandBtn.textContent = 'Đóng';
+        // Xóa event listener cũ và thêm mới
+        const newBtn = understandBtn.cloneNode(true);
+        newBtn.id = 'understandBtn'; // Giữ lại ID
+        understandBtn.parentNode.replaceChild(newBtn, understandBtn);
+        const updatedBtn = document.getElementById('understandBtn');
+        if (updatedBtn) {
+            updatedBtn.addEventListener('click', closeModal);
+        }
+    }
 }
 
 // Setup Event Listeners
@@ -648,7 +745,9 @@ function setupEventListeners() {
                 })
             });
 
+            console.log('📡 Order API Response Status:', response.status, response.statusText);
             const data = await response.json();
+            console.log('📊 Order API Response Data:', data);
 
             if (data.success) {
                 // Clear cart
@@ -659,20 +758,16 @@ function setupEventListeners() {
                 // Close checkout modal
                 closeCheckoutModal();
 
-                // Show payment info
-                showPaymentInfo(data.order, data.payment);
+                // Show payment info (với deliveryInfo nếu có)
+                showPaymentInfo(data.order, data.payment, data.deliveryInfo);
 
                 // Reset form
                 document.getElementById('orderForm').reset();
 
                 showNotification('Đặt hàng thành công! Vui lòng thanh toán để hoàn tất.', 'success');
             } else {
-                // Xử lý lỗi hết hàng
-                if (data.error === 'Sản phẩm hết hàng') {
-                    showOutOfStockModal(data.message, data.outOfStockItems);
-                } else {
-                    showNotification('❌ ' + (data.error || 'Có lỗi xảy ra'), 'error');
-                }
+                // Xử lý lỗi
+                showNotification('❌ ' + (data.error || 'Có lỗi xảy ra'), 'error');
             }
         } catch (error) {
             console.error('Lỗi đặt hàng:', error);

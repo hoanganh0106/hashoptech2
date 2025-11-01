@@ -11,6 +11,10 @@ const config = require('./config');
 const connectDB = require('./database');
 connectDB();
 
+// Import Order model và Telegram service cho auto-cancel
+const Order = require('./models/Order');
+const telegramService = require('./services/telegram');
+
 // Import routes
 const adminRoutes = require('./routes/admin');
 const productRoutes = require('./routes/products');
@@ -113,6 +117,60 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Không tìm thấy endpoint' });
 });
 
+// Hàm tự động hủy đơn hàng quá hạn thanh toán
+async function cancelExpiredOrders() {
+  try {
+    // Thời gian hết hạn: 1 giờ (có thể config qua ORDER_EXPIRATION_HOURS)
+    const expirationHours = process.env.ORDER_EXPIRATION_HOURS || 1;
+    const expirationTime = new Date(Date.now() - expirationHours * 60 * 60 * 1000);
+    
+    // Tìm các đơn hàng pending quá hạn
+    const expiredOrders = await Order.find({
+      paymentStatus: 'pending',
+      createdAt: { $lt: expirationTime }
+    });
+    
+    if (expiredOrders.length === 0) {
+      return;
+    }
+    
+    console.log(`⏰ Tìm thấy ${expiredOrders.length} đơn hàng quá hạn thanh toán`);
+    
+    for (const order of expiredOrders) {
+      // Cập nhật trạng thái đơn hàng
+      order.paymentStatus = 'cancelled';
+      order.deliveryStatus = 'cancelled';
+      order.cancelledAt = new Date();
+      order.cancellationReason = `Tự động hủy do quá hạn thanh toán (${expirationHours} giờ)`;
+      await order.save();
+      
+      console.log(`❌ Đã hủy đơn hàng: ${order.orderCode}`);
+      
+      // Gửi thông báo Telegram cho admin
+      await telegramService.sendMessage(
+        `❌ ĐƠN HÀNG TỰ ĐỘNG HỦY\n\n` +
+        `📦 Mã đơn hàng: ${order.orderCode}\n` +
+        `👤 Khách hàng: ${order.customerName}\n` +
+        `📧 Email: ${order.customerEmail}\n` +
+        `📱 SĐT: ${order.customerPhone || 'N/A'}\n` +
+        `💰 Tổng tiền: ${order.totalAmount.toLocaleString()}đ\n` +
+        `⏰ Thời gian tạo: ${order.createdAt.toLocaleString('vi-VN')}\n` +
+        `📝 Lý do: Quá hạn thanh toán (${expirationHours} giờ)\n\n` +
+        `Hệ thống tự động hủy đơn hàng quá hạn.`
+      );
+    }
+    
+    console.log(`✅ Đã xử lý ${expiredOrders.length} đơn hàng quá hạn`);
+  } catch (error) {
+    console.error('❌ Lỗi khi hủy đơn hàng quá hạn:', error);
+  }
+}
+
+// Chạy scheduled job: kiểm tra mỗi 1 giờ
+setInterval(cancelExpiredOrders, 60 * 60 * 1000); // 1 giờ
+// Chạy ngay khi khởi động server (sau 30 giây để đảm bảo DB đã kết nối)
+setTimeout(cancelExpiredOrders, 30 * 1000);
+
 // Start server
 const PORT = config.port;
 app.listen(PORT, () => {
@@ -121,6 +179,7 @@ app.listen(PORT, () => {
   console.log(`📍 URL: http://localhost:${PORT}`);
   console.log(`🔧 Môi trường: ${config.nodeEnv}`);
   console.log(`👤 Admin: http://localhost:${PORT}/admin`);
+  console.log(`⏰ Tự động hủy đơn hàng quá hạn: ${process.env.ORDER_EXPIRATION_HOURS || 1} giờ`);
   console.log('=================================');
 });
 

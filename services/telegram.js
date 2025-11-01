@@ -143,6 +143,37 @@ ${accountInfo}
   }
 
   /**
+   * Gửi thông báo đơn hàng cần chuẩn bị hàng
+   */
+  async notifyOrderNeedPreparation(order, itemsNeedPrep) {
+    const itemsList = itemsNeedPrep.map(item => 
+      `  • ${item.productName} - ${item.variantName} (Cần: ${item.requested}, Có: ${item.available || 0})`
+    ).join('\n');
+
+    const message = `
+🔔 <b>ĐƠN HÀNG CẦN CHUẨN BỊ HÀNG!</b>
+
+📋 <b>Mã đơn:</b> ${order.orderCode}
+💰 <b>Tổng tiền:</b> ${this.formatPrice(order.totalAmount)}
+
+👤 <b>Khách hàng:</b>
+  • Tên: ${order.customerName}
+  • Email: ${order.customerEmail}
+  • SĐT: ${order.customerPhone || 'N/A'}
+
+📦 <b>Sản phẩm cần chuẩn bị:</b>
+${itemsList}
+
+⏰ <b>Thời gian:</b> ${new Date(order.createdAt).toLocaleString('vi-VN')}
+⏱️ <b>Thời hạn giao hàng:</b> 30 phút (giờ làm việc 7h-00h)
+
+🚨 <b>Lưu ý:</b> Khách hàng đã thanh toán, cần chuẩn bị và gửi thông tin tài khoản ngay!
+    `.trim();
+
+    return await this.sendMessage(message);
+  }
+
+  /**
    * Helper: Format giá tiền
    */
   formatPrice(price) {

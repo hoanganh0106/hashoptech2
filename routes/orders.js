@@ -21,92 +21,163 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Thiếu thông tin đơn hàng' });
     }
 
+    console.log('📥 Received order request:', {
+      customerName,
+      customerEmail,
+      customerPhone,
+      itemsCount: items.length,
+      items: items
+    });
+
     // Tính tổng tiền và kiểm tra kho
     let totalAmount = 0;
     const orderItems = [];
     const outOfStockItems = [];
 
     for (const item of items) {
+      console.log('🔍 Processing item:', item);
       const product = await Product.findById(item.productId);
       if (!product) {
         console.log('⚠️ Product not found:', item.productId);
         continue;
       }
 
-      // Tìm variant - có thể là id, index, hoặc name
+      // Tìm variant - có thể là id, index (number hoặc string), hoặc name
       let variant;
-      if (item.variantId) {
-        variant = product.variants.id(item.variantId) || 
-                  product.variants.find(v => v.name === item.variantId);
+      if (item.variantId !== undefined && item.variantId !== null) {
+        // Thử tìm theo ObjectId trước
+        variant = product.variants.id(item.variantId);
+        
+        // Nếu không tìm thấy, thử tìm theo index (nếu là number hoặc string number)
+        if (!variant) {
+          const variantIndex = parseInt(item.variantId);
+          if (!isNaN(variantIndex) && variantIndex >= 0 && variantIndex < product.variants.length) {
+            variant = product.variants[variantIndex];
+          }
+        }
+        
+        // Nếu vẫn không tìm thấy, thử tìm theo name
+        if (!variant) {
+          variant = product.variants.find(v => v.name === item.variantId || v.name === String(item.variantId));
+        }
       }
       
       // Nếu không tìm thấy, dùng variant đầu tiên
       if (!variant && product.variants && product.variants.length > 0) {
         variant = product.variants[0];
+        console.log('⚠️ Using first variant as fallback for product:', product.name);
       }
 
       if (!variant) {
-        console.log('⚠️ No variant found for product:', product.name);
+        console.log('⚠️ No variant found for product:', product.name, 'variants:', product.variants);
         continue;
       }
+      
+      console.log('✅ Found variant:', variant.name, 'for product:', product.name);
 
-      // Kiểm tra kho tài khoản
+      // Lấy stockType từ variant
+      const stockType = variant.stockType || 'available';
+
+      // Kiểm tra kho tài khoản (chỉ khi stockType === 'available')
       const requestedQuantity = item.quantity || 1;
-      const availableAccounts = await Account.countDocuments({
-        productId: product._id,
-        variantName: variant.name,
-        status: 'available'
-      });
-
-      console.log(`📦 Stock check: ${product.name} - ${variant.name}: ${availableAccounts} available, need ${requestedQuantity}`);
-
-      if (availableAccounts < requestedQuantity) {
-        outOfStockItems.push({
-          productName: product.name,
+      let availableAccounts = 0;
+      
+      if (stockType === 'available') {
+        availableAccounts = await Account.countDocuments({
+          productId: product._id,
           variantName: variant.name,
-          requested: requestedQuantity,
-          available: availableAccounts
+          status: 'available'
         });
-        continue; // Bỏ qua item này
       }
+
+      console.log(`📦 Stock check: ${product.name} - ${variant.name} (${stockType}): ${availableAccounts} available, need ${requestedQuantity}`);
 
       const itemTotal = variant.price * requestedQuantity;
       totalAmount += itemTotal;
 
+      // Kiểm tra xem có cần chuẩn bị hàng không
+      const needsPreparation = stockType === 'contact' || (stockType === 'available' && availableAccounts < requestedQuantity);
+      
+      if (needsPreparation) {
+        outOfStockItems.push({
+          productName: product.name,
+          variantName: variant.name,
+          requested: requestedQuantity,
+          available: availableAccounts,
+          stockType: stockType,
+          reason: stockType === 'contact' ? 'Cần liên hệ' : 'Hết hàng'
+        });
+        console.log('⚠️ Item cần chuẩn bị hàng:', product.name, '-', variant.name, `(${stockType === 'contact' ? 'Cần liên hệ' : 'Hết hàng'})`);
+      }
+
+      // Vẫn thêm vào order ngay cả khi cần chuẩn bị hàng
       orderItems.push({
         productId: product._id,
         productName: product.name,
         variantName: variant.name,
         price: variant.price,
         quantity: requestedQuantity,
-        total: itemTotal
+        total: itemTotal,
+        stockType: stockType,
+        isOutOfStock: needsPreparation,
+        availableStock: availableAccounts
       });
 
-      console.log('✅ Adding order item:', product.name, '-', variant.name, ':', itemTotal);
+      if (!needsPreparation) {
+        console.log('✅ Adding order item:', product.name, '-', variant.name, ':', itemTotal);
+      }
     }
 
-    // Kiểm tra nếu có sản phẩm hết hàng
-    if (outOfStockItems.length > 0) {
-      console.log('⚠️ Out of stock items:', outOfStockItems);
+    // Function tính thời gian giao hàng dự kiến (7h - 00h)
+    function calculateDeliveryTime() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const workStartHour = 7;
+      const workEndHour = 24; // 0h = 24h
       
-      let outOfStockMessage = 'Một số sản phẩm hiện tại hết hàng:\n\n';
-      outOfStockItems.forEach(item => {
-        outOfStockMessage += `• ${item.productName} - ${item.variantName}: Cần ${item.requested}, có ${item.available}\n`;
-      });
-      outOfStockMessage += '\nVui lòng liên hệ trực tiếp để được hỗ trợ:\n';
-      outOfStockMessage += '📞 Telegram: @hoanganh1162\n';
-      outOfStockMessage += '📘 Facebook: facebook.com/HoangAnh.Sw';
-
-      return res.status(400).json({ 
-        error: 'Sản phẩm hết hàng',
-        message: outOfStockMessage,
-        outOfStockItems: outOfStockItems
-      });
+      if (currentHour >= workStartHour && currentHour < workEndHour) {
+        // Trong giờ làm việc (7h-00h): giao sau 30 phút
+        return new Date(now.getTime() + 30 * 60 * 1000);
+      } else {
+        // Ngoài giờ làm việc: giao vào 7h30 sáng hôm sau
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(7, 30, 0, 0);
+        return tomorrow;
+      }
     }
 
     // Kiểm tra nếu không có sản phẩm nào hợp lệ
+    console.log('📊 Order items processed:', orderItems.length, 'items');
+    console.log('📊 Out of stock items:', outOfStockItems.length, 'items');
+    
     if (orderItems.length === 0) {
+      console.error('❌ No valid items in order - all items were skipped!');
+      console.error('📋 Original items:', items);
       return res.status(400).json({ error: 'Không có sản phẩm hợp lệ trong đơn hàng' });
+    }
+
+    // Tạo notes nếu có sản phẩm hết hàng
+    let orderNotes = req.body.orderNote || '';
+    if (outOfStockItems.length > 0) {
+      const estimatedDeliveryTime = calculateDeliveryTime();
+      const deliveryTimeStr = estimatedDeliveryTime.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      orderNotes += (orderNotes ? '\n\n' : '') + 
+        `⚠️ LƯU Ý: Một số sản phẩm hiện tại hết hàng:\n` +
+        outOfStockItems.map(item => 
+          `• ${item.productName} - ${item.variantName}: Cần ${item.requested}, có ${item.available}`
+        ).join('\n') +
+        `\n\n📦 Thời gian giao hàng dự kiến: ${deliveryTimeStr}` +
+        `\n📞 Hoặc liên hệ trực tiếp để được hỗ trợ nhanh hơn:\n` +
+        `• Telegram: @hoanganh1162\n` +
+        `• Facebook: facebook.com/HoangAnh.Sw`;
     }
 
     // Tạo mã đơn hàng
@@ -126,14 +197,35 @@ router.post('/', async (req, res) => {
       totalAmount,
       qrCodeUrl,
       paymentStatus: 'pending',
-      deliveryStatus: 'pending'
+      deliveryStatus: 'pending',
+      notes: orderNotes || undefined
     });
 
     await order.save();
 
     console.log('✅ Order created:', order.orderCode);
+    console.log('📊 Out of stock items count:', outOfStockItems.length);
 
-    res.json({
+    // Tính thời gian giao hàng nếu có sản phẩm hết hàng
+    let deliveryInfo = null;
+    if (outOfStockItems.length > 0) {
+      const estimatedDeliveryTime = calculateDeliveryTime();
+      deliveryInfo = {
+        estimatedDeliveryTime: estimatedDeliveryTime.toISOString(),
+        estimatedDeliveryTimeStr: estimatedDeliveryTime.toLocaleString('vi-VN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        workingHours: '7h - 00h',
+        outOfStockItems: outOfStockItems
+      };
+      console.log('📦 Delivery info generated:', deliveryInfo);
+    }
+
+    const responseData = {
       success: true,
       message: 'Đã tạo đơn hàng',
       order: {
@@ -148,8 +240,12 @@ router.post('/', async (req, res) => {
         bankCode: config.sepay.bankCode,
         amount: order.totalAmount,
         content: orderCode
-      }
-    });
+      },
+      deliveryInfo: deliveryInfo // Thông tin giao hàng nếu có sản phẩm hết hàng
+    };
+
+    console.log('📤 Sending response:', JSON.stringify(responseData, null, 2));
+    res.json(responseData);
   } catch (error) {
     console.error('Create order error:', error);
     res.status(500).json({ error: 'Lỗi tạo đơn hàng' });

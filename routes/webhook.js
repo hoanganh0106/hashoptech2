@@ -46,12 +46,12 @@ async function handleSepayWebhook(req, res) {
     // Tìm đơn hàng khớp với nội dung chuyển khoản
     let matchedOrder = null;
 
-    // Ưu tiên tìm theo field 'code' nếu Sepay gửi
+    // Ưu tiên tìm theo field 'code' nếu Sepay gửi (chỉ tìm pending, không tìm cancelled)
     if (code) {
       console.log('🔍 Tìm đơn hàng theo code:', code);
       matchedOrder = await Order.findOne({
         orderCode: code,
-        paymentStatus: 'pending'
+        paymentStatus: 'pending' // Chỉ tìm đơn hàng pending, không tìm cancelled
       });
       
       if (matchedOrder) {
@@ -59,10 +59,10 @@ async function handleSepayWebhook(req, res) {
       }
     }
 
-    // Nếu không tìm thấy, tìm theo nội dung chuyển khoản
+    // Nếu không tìm thấy, tìm theo nội dung chuyển khoản (chỉ tìm pending)
     if (!matchedOrder && content) {
       console.log('🔍 Tìm đơn hàng theo content');
-      const orders = await Order.find({ paymentStatus: 'pending' });
+      const orders = await Order.find({ paymentStatus: 'pending' }); // Chỉ tìm pending
 
       if (orders && orders.length > 0) {
         const contentLower = content.toLowerCase().trim();
@@ -104,64 +104,129 @@ async function handleSepayWebhook(req, res) {
 
     console.log('✅ Đã cập nhật đơn hàng:', matchedOrder.orderCode);
 
-    // Tự động giao hàng nếu có tài khoản trong kho
+    // Import Product để lấy stockType
+    const Product = require('../models/Product');
+    
+    // Phân loại items: tự động lấy từ kho vs cần chuẩn bị hàng
     const deliveredAccounts = [];
+    const itemsNeedPreparation = [];
 
     for (const item of matchedOrder.items) {
-      for (let i = 0; i < item.quantity; i++) {
-        const account = await Account.findOne({
-          productId: item.productId,
-          status: 'available',
-          variantName: item.variantName
-        });
+      // Lấy stockType từ item hoặc từ product
+      let stockType = item.stockType;
+      
+      if (!stockType) {
+        // Nếu không có trong item, lấy từ product variant
+        const product = await Product.findById(item.productId);
+        if (product && product.variants) {
+          const variant = product.variants.find(v => v.name === item.variantName);
+          if (variant) {
+            stockType = variant.stockType || 'available';
+          }
+        }
+      }
 
-        if (account) {
-          deliveredAccounts.push({
+      stockType = stockType || 'available';
+      console.log(`📦 Processing item: ${item.productName} - ${item.variantName} (stockType: ${stockType})`);
+
+      // Chỉ tự động lấy từ kho khi stockType === 'available' và có đủ hàng
+      if (stockType === 'available') {
+        let hasEnoughStock = true;
+        
+        for (let i = 0; i < item.quantity; i++) {
+          const account = await Account.findOne({
             productId: item.productId,
-            variantName: item.variantName,
-            username: account.username,
-            password: account.password,
-            deliveredAt: new Date()
+            status: 'available',
+            variantName: item.variantName
           });
 
-          // Đánh dấu account đã bán
-          account.status = 'sold';
-          account.soldToOrderId = matchedOrder._id;
-          account.soldAt = new Date();
-          await account.save();
+          if (account) {
+            deliveredAccounts.push({
+              productId: item.productId,
+              variantName: item.variantName,
+              username: account.username,
+              password: account.password,
+              deliveredAt: new Date()
+            });
+
+            // Đánh dấu account đã bán
+            account.status = 'sold';
+            account.soldToOrderId = matchedOrder._id;
+            account.soldAt = new Date();
+            await account.save();
+          } else {
+            hasEnoughStock = false;
+          }
         }
+
+        // Nếu không đủ hàng, thêm vào danh sách cần chuẩn bị
+        if (!hasEnoughStock) {
+          const availableCount = await Account.countDocuments({
+            productId: item.productId,
+            status: 'available',
+            variantName: item.variantName
+          });
+          
+          itemsNeedPreparation.push({
+            productName: item.productName,
+            variantName: item.variantName,
+            requested: item.quantity,
+            available: availableCount,
+            stockType: stockType,
+            reason: 'Hết hàng'
+          });
+        }
+      } else {
+        // stockType === 'contact' - luôn cần chuẩn bị hàng
+        itemsNeedPreparation.push({
+          productName: item.productName,
+          variantName: item.variantName,
+          requested: item.quantity,
+          available: 0,
+          stockType: stockType,
+          reason: 'Cần liên hệ'
+        });
       }
     }
 
     // Cập nhật delivery status
     if (deliveredAccounts.length > 0) {
       matchedOrder.deliveredAccounts = deliveredAccounts;
-      matchedOrder.deliveryStatus = 'completed';
-      matchedOrder.deliveredAt = new Date();
+      // Chỉ đánh dấu completed nếu tất cả items đều đã giao
+      const totalItemsCount = matchedOrder.items.reduce((sum, item) => sum + item.quantity, 0);
+      if (deliveredAccounts.length === totalItemsCount) {
+        matchedOrder.deliveryStatus = 'completed';
+        matchedOrder.deliveredAt = new Date();
+      } else {
+        matchedOrder.deliveryStatus = 'processing';
+      }
       await matchedOrder.save();
     }
 
     // Gửi thông báo Telegram
-    let message = `🎉 ĐƠN HÀNG THANH TOÁN THÀNH CÔNG\n\n` +
-      `📦 Mã đơn: ${matchedOrder.orderCode}\n` +
-      `👤 Khách hàng: ${matchedOrder.customerName}\n` +
-      `📧 Email: ${matchedOrder.customerEmail}\n` +
-      `💰 Số tiền: ${matchedOrder.totalAmount.toLocaleString()}đ\n` +
-      `🏦 Mã GD: ${transaction_id}\n\n`;
-
-    if (deliveredAccounts.length > 0) {
-      message += `✅ Đã giao ${deliveredAccounts.length} tài khoản\n\n`;
-      message += `📋 Danh sách tài khoản:\n`;
-      deliveredAccounts.forEach((acc, index) => {
-        message += `${index + 1}. ${acc.variantName || 'N/A'}\n`;
-        message += `   • User: ${acc.username}\n`;
-        message += `   • Pass: ${acc.password}\n`;
-      });
+    if (itemsNeedPreparation.length > 0) {
+      // Có sản phẩm cần chuẩn bị hàng - gửi notification riêng
+      console.log(`📢 Gửi thông báo Telegram: Có ${itemsNeedPreparation.length} sản phẩm cần chuẩn bị hàng`);
+      await telegramService.notifyOrderNeedPreparation(matchedOrder, itemsNeedPreparation);
+      console.log('✅ Đã gửi thông báo chuẩn bị hàng');
+      
+      // Gửi thông báo thanh toán thành công
+      await telegramService.notifyPaymentSuccess(matchedOrder, transaction_id);
     } else {
-      message += `⚠️ Chưa giao hàng (không đủ tài khoản trong kho)`;
+      // Tất cả đều tự động giao hàng
+      await telegramService.notifyPaymentSuccess(matchedOrder, transaction_id);
+      
+      // Gửi chi tiết tài khoản đã giao
+      if (deliveredAccounts.length > 0) {
+        let accountDetails = `📋 Danh sách tài khoản đã giao:\n`;
+        deliveredAccounts.forEach((acc, index) => {
+          accountDetails += `${index + 1}. ${acc.variantName || 'N/A'}\n`;
+          accountDetails += `   • User: ${acc.username}\n`;
+          accountDetails += `   • Pass: ${acc.password}\n`;
+        });
+        await telegramService.sendMessage(accountDetails);
+      }
     }
-
-    await telegramService.sendMessage(message);
 
     // Gửi email cho khách hàng
     console.log('📧 Đang gửi email cho khách hàng...');
@@ -175,15 +240,11 @@ async function handleSepayWebhook(req, res) {
       } else {
         console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
       }
-    } else {
-      // Không có tài khoản trong kho - gửi email yêu cầu liên hệ
-      const emailSent = await emailService.sendOutOfStockNotification(matchedOrder);
-      
-      if (emailSent) {
-        console.log('✅ Đã gửi email thông báo hết hàng thành công');
-      } else {
-        console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
-      }
+    }
+    
+    // Nếu có items cần chuẩn bị hàng, không gửi email ngay (sẽ gửi sau khi admin chuẩn bị xong)
+    if (itemsNeedPreparation.length > 0) {
+      console.log(`📦 Có ${itemsNeedPreparation.length} sản phẩm cần chuẩn bị hàng - Admin sẽ gửi thông tin sau khi chuẩn bị xong`);
     }
 
     res.json({ 
