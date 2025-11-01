@@ -226,10 +226,9 @@ async function handleSepayWebhook(req, res) {
     }
 
     // Gửi email cho khách hàng
-    console.log('📧 Đang gửi email cho khách hàng...');
-    
     if (deliveredAccounts.length > 0) {
       // Có tài khoản trong kho - gửi thông tin tài khoản
+      console.log(`📧 Đang gửi email thông tin tài khoản cho khách hàng (${deliveredAccounts.length} tài khoản)...`);
       const emailSent = await emailService.sendAccountInfo(matchedOrder, deliveredAccounts);
       
       if (emailSent) {
@@ -237,11 +236,11 @@ async function handleSepayWebhook(req, res) {
       } else {
         console.log('⚠️ Không thể gửi email (chưa cấu hình email service)');
       }
-    }
-    
-    // Nếu có items cần chuẩn bị hàng, không gửi email ngay (sẽ gửi sau khi admin chuẩn bị xong)
-    if (itemsNeedPreparation.length > 0) {
-      console.log(`📦 Có ${itemsNeedPreparation.length} sản phẩm cần chuẩn bị hàng - Admin sẽ gửi thông tin sau khi chuẩn bị xong`);
+    } else if (itemsNeedPreparation.length > 0) {
+      // Nếu có items cần chuẩn bị hàng, không gửi email ngay (sẽ gửi sau khi admin chuẩn bị xong)
+      console.log(`📦 Có ${itemsNeedPreparation.length} sản phẩm cần chuẩn bị hàng - Không gửi email, Admin sẽ gửi thông tin sau khi chuẩn bị xong`);
+    } else {
+      console.log('ℹ️ Không có tài khoản nào để gửi email');
     }
 
     res.json({ 
