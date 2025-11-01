@@ -205,13 +205,10 @@ async function handleSepayWebhook(req, res) {
 
     // Gửi thông báo Telegram
     if (itemsNeedPreparation.length > 0) {
-      // Có sản phẩm cần chuẩn bị hàng - gửi notification riêng
+      // Có sản phẩm cần chuẩn bị hàng - chỉ gửi 1 thông báo duy nhất
       console.log(`📢 Gửi thông báo Telegram: Có ${itemsNeedPreparation.length} sản phẩm cần chuẩn bị hàng`);
       await telegramService.notifyOrderNeedPreparation(matchedOrder, itemsNeedPreparation);
       console.log('✅ Đã gửi thông báo chuẩn bị hàng');
-      
-      // Gửi thông báo thanh toán thành công
-      await telegramService.notifyPaymentSuccess(matchedOrder, transaction_id);
     } else {
       // Tất cả đều tự động giao hàng
       await telegramService.notifyPaymentSuccess(matchedOrder, transaction_id);
