@@ -262,7 +262,9 @@ function showProductDetails(productId) {
                                 <input type="radio" name="variant" value="${variant.id || index}" ${index === 0 ? 'checked' : ''} style="margin-right: 1rem;" onchange="selectVariant('${productId}', ${index})">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; color: var(--dark-color);">${variant.name}</div>
-                                    <div style="font-size: 0.9rem; color: #666;">${variant.description || ''}</div>
+                                    <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
+                                        ${variant.description ? variant.description + ' • ' : ''}⏱️ ${durationText}
+                                    </div>
                                 </div>
                                 <div style="font-size: 1.25rem; font-weight: bold; color: var(--accent-color);">
                                     ${formatPrice(variant.price)}
