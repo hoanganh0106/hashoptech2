@@ -14,16 +14,6 @@ const productVariantSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  duration_value: {
-    type: Number,
-    required: true,
-    default: 1
-  },
-  duration_unit: {
-    type: String,
-    enum: ['day', 'month', 'year'],
-    default: 'month'
-  },
   stockType: {
     type: String,
     enum: ['available', 'contact'],

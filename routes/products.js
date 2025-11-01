@@ -39,8 +39,6 @@ router.get('/', async (req, res) => {
           name: v.name,
           description: v.description || '',
           price: v.price,
-          duration_value: v.duration_value,
-          duration_unit: v.duration_unit,
           stockType: v.stockType || 'available'
         })),
         created_at: product.createdAt
@@ -112,9 +110,6 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       if (!variant.price || parseFloat(variant.price) <= 0) {
         return res.status(400).json({ error: 'Giá gói phải lớn hơn 0' });
       }
-      if (!variant.duration_value || parseInt(variant.duration_value) <= 0) {
-        return res.status(400).json({ error: 'Thời gian gói phải lớn hơn 0' });
-      }
     }
 
     const product = new Product({
@@ -127,8 +122,6 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         name: v.name.trim(),
         description: v.description || '',
         price: parseFloat(v.price) || 0,
-        duration_value: parseInt(v.duration_value) || 1,
-        duration_unit: v.duration_unit || 'month',
         stockType: v.stockType || 'available'
       }))
     });
@@ -188,17 +181,12 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         if (!variant.price || parseFloat(variant.price) <= 0) {
           return res.status(400).json({ error: 'Giá gói phải lớn hơn 0' });
         }
-        if (!variant.duration_value || parseInt(variant.duration_value) <= 0) {
-          return res.status(400).json({ error: 'Thời gian gói phải lớn hơn 0' });
-        }
       }
       
       product.variants = variants.map(v => ({
         name: v.name.trim(),
         description: v.description || '',
         price: parseFloat(v.price) || 0,
-        duration_value: parseInt(v.duration_value) || 1,
-        duration_unit: v.duration_unit || 'month',
         stockType: v.stockType || 'available'
       }));
     }

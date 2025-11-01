@@ -338,8 +338,6 @@ function addVariant() {
     const variant = {
         id: Date.now(),
         name: '',
-        duration_value: 1,
-        duration_unit: 'month',
         price: 0,
         description: '',
         stockType: 'available'
@@ -382,10 +380,6 @@ function renderVariants() {
                     <input type="number" class="form-input variant-price" data-index="${index}" value="${v.price}" placeholder="50000" required>
                 </div>
             </div>
-            
-            <!-- Hidden fields cho duration (giá trị mặc định: 1 month) -->
-            <input type="hidden" class="variant-duration" data-index="${index}" value="${v.duration_value || 1}">
-            <input type="hidden" class="variant-unit" data-index="${index}" value="${v.duration_unit || 'month'}">
 
             <div style="margin-top:1rem;">
                 <label style="font-size:0.875rem; font-weight:600;">Mô tả gói</label>
@@ -413,8 +407,6 @@ function renderVariants() {
 function updateVariantsFromForm() {
     const variantNames = document.querySelectorAll('.variant-name');
     const variantPrices = document.querySelectorAll('.variant-price');
-    const variantDurations = document.querySelectorAll('.variant-duration'); // Hidden fields
-    const variantUnits = document.querySelectorAll('.variant-unit'); // Hidden fields
     const variantDescs = document.querySelectorAll('.variant-desc');
     const variantStockTypes = document.querySelectorAll('.variant-stock-type');
 
@@ -422,9 +414,6 @@ function updateVariantsFromForm() {
         if (productVariants[idx]) {
             productVariants[idx].name = input.value;
             productVariants[idx].price = parseInt(variantPrices[idx].value) || 0;
-            // Duration giữ giá trị mặc định (1 month) từ hidden fields
-            productVariants[idx].duration_value = parseInt(variantDurations[idx]?.value) || 1;
-            productVariants[idx].duration_unit = variantUnits[idx]?.value || 'month';
             productVariants[idx].description = variantDescs[idx]?.value || '';
             productVariants[idx].stockType = variantStockTypes[idx]?.value || 'available';
         }

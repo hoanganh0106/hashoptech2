@@ -253,20 +253,13 @@ function showProductDetails(productId) {
                 <h3 style="margin-bottom: 1rem; color: var(--dark-color);">Chọn gói:</h3>
                 <div id="variantOptions" style="display: flex; flex-direction: column; gap: 0.75rem;">
                     ${product.variants.map((variant, index) => {
-                        const durationText = variant.duration_value + ' ' + 
-                            (variant.duration_unit === 'day' ? 'ngày' : 
-                             variant.duration_unit === 'month' ? 'tháng' : 'năm');
-                        
                         return `
                             <label class="variant-option ${index === 0 ? 'selected' : ''}" style="display: flex; align-items: center; padding: 1rem; border: 2px solid ${index === 0 ? 'var(--primary-color)' : '#e2e8f0'}; border-radius: 8px; cursor: pointer; transition: all 0.3s;">
                                 <input type="radio" name="variant" value="${variant.id || index}" ${index === 0 ? 'checked' : ''} style="margin-right: 1rem;" onchange="selectVariant('${productId}', ${index})">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; color: var(--dark-color); margin-bottom: 0.25rem;">${variant.name}</div>
-                                    <div style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 0.25rem;">
-                                        ⏱️ ${durationText}
-                                    </div>
                                     ${variant.description ? `
-                                        <div style="font-size: 0.85rem; color: #888;">
+                                        <div style="font-size: 0.9rem; color: #666; margin-top: 0.25rem;">
                                             ${variant.description}
                                         </div>
                                     ` : ''}
