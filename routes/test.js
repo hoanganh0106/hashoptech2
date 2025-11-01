@@ -127,6 +127,37 @@ router.get('/database', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/test/version - Get current git commit hash
+ */
+router.get('/version', (req, res) => {
+  const { execSync } = require('child_process');
+  try {
+    // Lấy commit hash
+    const commitHash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
+    const commitMessage = execSync('git log -1 --pretty=%B', { encoding: 'utf-8' }).trim();
+    const commitDate = execSync('git log -1 --pretty=%ci', { encoding: 'utf-8' }).trim();
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+    
+    res.json({
+      success: true,
+      version: {
+        commitHash: commitHash.substring(0, 7),
+        fullHash: commitHash,
+        commitMessage,
+        commitDate,
+        branch
+      }
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: 'Không thể lấy thông tin git',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
 
 
