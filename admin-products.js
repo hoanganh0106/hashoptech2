@@ -461,8 +461,8 @@ async function saveProduct(e) {
 
     // Validate variants
     for (let v of productVariants) {
-        if (!v.name || !v.price || !v.duration_value) {
-            showNotification('Vui lòng điền đầy đủ thông tin các gói', 'error');
+        if (!v.name || !v.price) {
+            showNotification('Vui lòng điền đầy đủ thông tin các gói (tên và giá)', 'error');
             return;
         }
     }
